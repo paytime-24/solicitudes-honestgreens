@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solicitudes de días libres - Honest Greens</title>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f6f7f5;
+      margin: 0;
+      padding: 0;
+      color: #2f3e46;
+    }
+    header {
+      background-color: #2f855a;
+      color: white;
+      text-align: center;
+      padding: 15px 0;
+      font-size: 1.4rem;
+      letter-spacing: 0.5px;
+    }
+    #calendar {
+      max-width: 900px;
+      margin: 40px auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: white;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 450px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #2f855a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 15px;
+      font-size: 1rem;
+      margin-top: 15px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #276749; }
+    .close {
+      float: right;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <header>🌿 Solicitudes de días libres - Honest Greens</header>
+  <div id="calendar"></div>
+
+  <!-- Modal de solicitud -->
+  <div id="solicitudModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarModal()">&times;</span>
+      <h2>Registrar solicitud</h2>
+      <form id="solicitudForm">
+        <label for="empleado">Empleado</label>
+        <select id="empleado" required>
+          <option value="">Selecciona tu nombre</option>
+          <option>Justo Gomez</option>
+          <option>Yustin Zambrano</option>
+          <option>Julio Arias</option>
+          <option>Francisco Soriano</option>
+          <option>Valentin Naranjo</option>
+          <option>Michelle Autelitano</option>
+          <option>Santiago Germain</option>
+          <option>Sanguita Karki</option>
+          <option>Marianita Kurys</option>
+          <option>Camila Calzadilla</option>
+          <option>Gimena Vicente</option>
+          <option>Radhika Barea</option>
+          <option>Andrei Belei</option>
+          <option>Marcos Fernandez</option>
+          <option>Laura Delgado</option>
+          <option>Enric Conill</option>
+          <option>Gabriel Flores</option>
+          <option>Alejandro Reñe</option>
+          <option>Juliette Christiane</option>
+          <option>Kiara Soledad</option>
+          <option>Juana Ambrosoni</option>
+          <option>Armin Rajabicheraghabadi</option>
+          <option>Diego Lopez</option>
+          <option>Julieta Salomone</option>
+        </select>
+
+        <label for="tipo">Tipo de solicitud</label>
+        <select id="tipo" required>
+          <option value="">Selecciona tipo</option>
+          <option>Vacaciones</option>
+          <option>Día libre</option>
+          <option>Asuntos propios</option>
+        </select>
+
+        <label>Desde (fecha y hora)</label>
+        <input type="datetime-local" id="desde" required>
+        <label>Hasta (fecha y hora)</label>
+        <input type="datetime-local" id="hasta" required>
+
+        <label for="comentarios">Comentarios</label>
+        <textarea id="comentarios" rows="3" placeholder="Escribe aquí (opcional)"></textarea>
+
+        <button type="submit">Enviar solicitud</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // 👉 Pega aquí tus datos de EmailJS:
+    // emailjs.init("Q6R8TiTO6mPO8Bzxt");
+    // const SERVICE_ID = "service_6wnk6kc ";
+    // const TEMPLATE_ID = "template_lwbjymg";
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const calendarEl = document.getElementById('calendar');
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        selectable: true,
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: ''
+        },
+        validRange: {
+          start: '2025-01-01',
+          end: '2026-12-31'
+        },
+        dateClick: function(info) {
+          abrirModal(info.dateStr);
+        }
+      });
+      calendar.render();
+    });
+
+    // Modal
+    const modal = document.getElementById('solicitudModal');
+    function abrirModal(fecha) {
+      modal.style.display = 'block';
+      document.getElementById('desde').value = fecha + "T09:00";
+      document.getElementById('hasta').value = fecha + "T18:00";
+    }
+    function cerrarModal() { modal.style.display = 'none'; }
+
+    // Envío del formulario
+    document.getElementById('solicitudForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const empleado = document.getElementById('empleado').value;
+      const tipo = document.getElementById('tipo').value;
+      const desde = document.getElementById('desde').value;
+      const hasta = document.getElementById('hasta').value;
+      const comentarios = document.getElementById('comentarios').value;
+
+      if (!empleado || !tipo) {
+        alert("Por favor completa todos los campos obligatorios.");
+        return;
+      }
+
+      const templateParams = {
+        employee: empleado,
+        type: tipo,
+        from_date: desde,
+        to_date: hasta,
+        comments: comentarios
+      };
+
+      // Enviar correo con EmailJS
+      emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
+        .then(() => {
+          alert("✅ Solicitud enviada con éxito. Gracias, " + empleado + ".");
+          cerrarModal();
+          document.getElementById('solicitudForm').reset();
+        })
+        .catch(() => alert("❌ Error al enviar la solicitud. Revisa tu conexión."));
+    });
+
+    // Cerrar modal al hacer clic fuera
+    window.onclick = function(event) {
+      if (event.target == modal) cerrarModal();
+    }
+  </script>
+</body>
+</html>
