@@ -212,5 +212,38 @@
       if (event.target == modal) cerrarModal();
     }
   </script>
+  <!-- Carga la librería de EmailJS -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<!-- Configura EmailJS -->
+<script type="text/javascript">
+  (function() {
+    emailjs.init({
+      publicKey: "H0nest.2024!" // <- reemplaza con tu clave real
+    });
+  })();
+  <script>
+function enviarSolicitud() {
+  const nombre = document.getElementById("empleado").value;
+  const tipo = document.getElementById("tipo").value;
+  const desde = document.getElementById("desde").value;
+  const hasta = document.getElementById("hasta").value;
+  const comentarios = document.getElementById("comentarios").value;
+
+  emailjs.send("TU_SERVICE_ID", "TU_TEMPLATE_ID", {
+    nombre: nombre,
+    tipo: tipo,
+    desde: desde,
+    hasta: hasta,
+    comentarios: comentarios
+  })
+  .then(() => alert("✅ Solicitud enviada con éxito"))
+  .catch(err => alert("❌ Error al enviar la solicitud: " + JSON.stringify(err)));
+}
+</script>
+<button type="button" onclick="enviarSolicitud()">Enviar solicitud</button>
+
+</script>
+
 </body>
 </html>
