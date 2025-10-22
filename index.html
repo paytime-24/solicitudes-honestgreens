@@ -1,96 +1,169 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Solicitudes de días libres - Honest Greens</title>
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Organizador de días - FORTUNY</title>
+
+  <!-- FullCalendar CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet" />
+
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f6f7f5;
-      margin: 0;
-      padding: 0;
-      color: #2f3e46;
+    :root{
+      --bg:#f6efe6;
+      --panel:#fffaf5;
+      --accent:#8c6b4a; /* marrón suave */
+      --accent-dark:#6e4d3a;
+      --muted:#d8c3a5;
+      --text:#3d2f2a;
+      --white:#ffffff;
     }
-    header {
-      background-color: #2f855a;
-      color: white;
-      text-align: center;
-      padding: 15px 0;
-      font-size: 1.4rem;
-      letter-spacing: 0.5px;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
     }
-    #calendar {
-      max-width: 900px;
-      margin: 40px auto;
-      background-color: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    header{
+      background:linear-gradient(90deg,var(--accent) 0%, #b8926f 100%);
+      color:var(--white);
+      padding:18px 12px;
+      text-align:center;
+      box-shadow:0 4px 12px rgba(0,0,0,0.06);
     }
+    header h1{ margin:0; font-size:1.25rem; letter-spacing:0.4px; font-weight:700;}
+    .wrap{
+      max-width:1000px;
+      margin:26px auto;
+      padding:0 16px 60px;
+    }
+    .top-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    #infoEmpleado{
+      background:var(--panel);
+      padding:10px 12px;
+      border-radius:10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    #infoEmpleado select{
+      padding:8px 10px;
+      border-radius:8px;
+      border:1px solid #e6d9c8;
+      background: var(--white);
+      color:var(--text);
+      font-weight:600;
+    }
+    #contador{
+      font-size:0.95rem;
+      color:var(--accent-dark);
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    #adminBtn{
+      background:transparent;
+      border:1px dashed rgba(61,47,42,0.12);
+      padding:6px 10px;
+      border-radius:8px;
+      cursor:pointer;
+      color:var(--accent-dark);
+      font-weight:600;
+    }
+    #calendar{
+      background:var(--panel);
+      border-radius:12px;
+      padding:18px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    }
+
+    /* modal */
     .modal {
-      display: none;
-      position: fixed;
-      z-index: 10;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.4);
+      display:none;
+      position:fixed;
+      z-index:60;
+      left:0; top:0;
+      width:100%; height:100%;
+      background: rgba(0,0,0,0.35);
+      justify-content:center;
+      align-items:center;
     }
-    .modal-content {
-      background-color: white;
-      margin: 10% auto;
-      padding: 20px;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 450px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    .modal-content{
+      background:var(--white);
+      width:92%;
+      max-width:520px;
+      border-radius:12px;
+      padding:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.18);
     }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: 500;
+    .modal-content h2{ margin:0 0 8px 0; color:var(--accent-dark); }
+    label{ display:block; margin-top:10px; font-weight:600; color:var(--accent-dark); font-size:0.95rem;}
+    input[type="datetime-local"], select, textarea {
+      width:100%;
+      padding:9px 10px;
+      border-radius:8px;
+      border:1px solid #e6d9c8;
+      margin-top:6px;
+      font-size:0.95rem;
+      background: #fff;
     }
-    input, select, textarea {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
+    textarea{ resize:vertical; min-height:80px; }
+    .row{
+      display:flex; gap:8px; align-items:center; margin-top:6px;
     }
-    button {
-      background-color: #2f855a;
-      color: white;
+    .btn {
+      background:var(--accent);
+      color:var(--white);
+      border:none;
+      padding:10px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+      margin-top:14px;
+    }
+    .btn.secondary{
+      background:var(--muted);
+      color:var(--accent-dark);
+      margin-left:8px;
+    }
+    .close{
+      float:right; font-size:20px; cursor:pointer; color:#9c7f67;
+    }
+    .small-muted{font-size:0.9rem;color:#7a6a5d}
+    /* events */
+    .fc-event {
       border: none;
-      border-radius: 8px;
-      padding: 10px 15px;
-      font-size: 1rem;
-      margin-top: 15px;
-      cursor: pointer;
+      padding:3px 6px;
+      border-radius:6px;
+      font-weight:700;
+      font-size:0.8rem;
     }
-    button:hover { background-color: #276749; }
-    .close {
-      float: right;
-      font-size: 1.2rem;
-      cursor: pointer;
+    .fc .fc-daygrid-event .fc-event-title { color:var(--accent-dark) }
+    @media (max-width:700px){
+      .top-row{flex-direction:column;align-items:stretch;}
     }
   </style>
 </head>
-
 <body>
-  <header>🌿 Solicitudes de días libres - Honest Greens</header>
-  <div id="calendar"></div>
+  <header>
+    <h1>Organizador de días - FORTUNY</h1>
+  </header>
 
-  <!-- Modal de solicitud -->
-  <div id="solicitudModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="cerrarModal()">&times;</span>
-      <h2>Registrar solicitud</h2>
-      <form id="solicitudForm">
-        <label for="empleado">Empleado</label>
-        <select id="empleado" required>
+  <div class="wrap">
+    <div class="top-row">
+      <div id="infoEmpleado" aria-hidden="false">
+        <div style="margin-right:8px;font-size:0.95rem;color:var(--accent-dark);font-weight:700">Empleado:</div>
+        <select id="empleadoSelect" aria-label="Selecciona empleado">
           <option value="">Selecciona tu nombre</option>
           <option>Justo Gomez</option>
           <option>Yustin Zambrano</option>
@@ -117,7 +190,24 @@
           <option>Diego Lopez</option>
           <option>Julieta Salomone</option>
         </select>
+      </div>
 
+      <div style="display:flex;gap:12px;align-items:center">
+        <div id="contador">Días disponibles: <span id="diasRestantes">30</span></div>
+        <button id="adminBtn" title="Entrar como administrador">Entrar administrador</button>
+      </div>
+    </div>
+
+    <div id="calendar"></div>
+  </div>
+
+  <!-- Modal (formulario) -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-content" role="document">
+      <span class="close" id="closeModal">&times;</span>
+      <h2>Solicitud de tiempo</h2>
+
+      <form id="solicitudForm" aria-label="Formulario de solicitud">
         <label for="tipo">Tipo de solicitud</label>
         <select id="tipo" required>
           <option value="">Selecciona tipo</option>
@@ -126,124 +216,460 @@
           <option>Asuntos propios</option>
         </select>
 
-        <label>Desde (fecha y hora)</label>
-        <input type="datetime-local" id="desde" required>
-        <label>Hasta (fecha y hora)</label>
-        <input type="datetime-local" id="hasta" required>
+        <div class="row">
+          <div style="flex:1">
+            <label for="desde">Desde (fecha y hora)</label>
+            <input id="desde" type="datetime-local" required>
+          </div>
+          <div style="flex:1">
+            <label for="hasta">Hasta (fecha y hora)</label>
+            <input id="hasta" type="datetime-local" required>
+          </div>
+        </div>
 
-        <label for="comentarios">Comentarios</label>
-        <textarea id="comentarios" rows="3" placeholder="Escribe aquí (opcional)"></textarea>
+        <button type="button" id="todoDia" class="btn secondary">Todo el día</button>
 
-        <button type="submit">Enviar solicitud</button>
+        <label for="comentarios">Comentarios (opcional)</label>
+        <textarea id="comentarios" placeholder="Motivo, notas..."></textarea>
+
+        <div style="display:flex;gap:8px;">
+          <button class="btn" type="submit">Enviar solicitud</button>
+          <button class="btn secondary" type="button" id="cancelBtn">Cancelar</button>
+        </div>
+        <div style="margin-top:8px" class="small-muted">Tu solicitud será enviada a RRHH para su gestión.</div>
       </form>
     </div>
   </div>
 
+  <!-- Admin modal -->
+  <div id="adminModal" class="modal" aria-hidden="true">
+    <div class="modal-content" style="max-width:380px">
+      <span class="close" id="closeAdmin">&times;</span>
+      <h2>Acceso administrador</h2>
+      <p class="small-muted">Introduce la clave para ver todas las solicitudes.</p>
+      <input id="adminPassword" type="password" placeholder="Clave administradora">
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="enterAdmin" class="btn">Entrar</button>
+        <button id="closeAdminBtn" class="btn secondary">Cerrar</button>
+      </div>
+      <div id="adminMsg" style="margin-top:10px;color:#8a3d3d;font-weight:700;"></div>
+    </div>
+  </div>
+
+  <!-- FullCalendar + EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
   <script>
-    
-    // emailjs.init("Q6R8TiTO6mPO8Bzxt");
-    // const SERVICE_ID = "service_6wnk6kc";
-    // const TEMPLATE_ID = "template_lwbjymg";
+  /******************************************
+   CONFIG: EmailJS (ya con tus datos)
+   ******************************************/
+  emailjs.init("Q6R8TiTO6mPO8Bzxt"); // Public Key
+  const SERVICE_ID = "service_6wnk6kc";
+  const TEMPLATE_ID = "template_lwbjymg";
 
-    document.addEventListener('DOMContentLoaded', function() {
-      const calendarEl = document.getElementById('calendar');
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        selectable: true,
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: ''
-        },
-        validRange: {
-          start: '2025-01-01',
-          end: '2026-12-31'
-        },
-        dateClick: function(info) {
-          abrirModal(info.dateStr);
-        }
-      });
-      calendar.render();
-    });
+  /******************************************
+   CONSTANTES Y ESTADO
+  ******************************************/
+  const DIAS_VACACIONES_TOTALES = 30;
+  const CALENDAR_START = '2025-10-01';
+  const CALENDAR_END = '2026-12-31';
+  const ADMIN_PASSWORD = 'fortuny2025';
 
-    // Modal
-    const modal = document.getElementById('solicitudModal');
-    function abrirModal(fecha) {
-      modal.style.display = 'block';
-      document.getElementById('desde').value = fecha + "T09:00";
-      document.getElementById('hasta').value = fecha + "T18:00";
+  let isAdmin = false;
+  let selectedDateISO = null; // fecha clicada
+  const empleadoSelect = document.getElementById('empleadoSelect');
+  const diasRestantesEl = document.getElementById('diasRestantes');
+
+  /******************************************
+   UTILIDADES STORAGE: eventos y dias
+  ******************************************/
+  function obtenerEventos() {
+    const raw = localStorage.getItem('og_events_v1');
+    try {
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){
+      return [];
     }
-    function cerrarModal() { modal.style.display = 'none'; }
+  }
+  function guardarEventos(evts) {
+    localStorage.setItem('og_events_v1', JSON.stringify(evts));
+  }
 
-    // Envío del formulario
-    document.getElementById('solicitudForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const empleado = document.getElementById('empleado').value;
-      const tipo = document.getElementById('tipo').value;
-      const desde = document.getElementById('desde').value;
-      const hasta = document.getElementById('hasta').value;
-      const comentarios = document.getElementById('comentarios').value;
+  function obtenerDiasPara(empleado) {
+    if (!empleado) return DIAS_VACACIONES_TOTALES;
+    const key = 'og_dias_' + empleado;
+    const raw = localStorage.getItem(key);
+    if (raw === null) {
+      localStorage.setItem(key, String(DIAS_VACACIONES_TOTALES));
+      return DIAS_VACACIONES_TOTALES;
+    }
+    return Number(raw);
+  }
+  function guardarDiasPara(empleado, dias) {
+    if (!empleado) return;
+    const key = 'og_dias_' + empleado;
+    localStorage.setItem(key, String(dias));
+  }
 
-      if (!empleado || !tipo) {
-        alert("Por favor completa todos los campos obligatorios.");
+  /******************************************
+   Inicializa empleado seleccionado (persistente)
+  ******************************************/
+  const storedEmpleado = localStorage.getItem('empleadoSeleccionado');
+  if (storedEmpleado) empleadoSelect.value = storedEmpleado;
+  function actualizarContadorDisplay(empleado) {
+    diasRestantesEl.textContent = obtenerDiasPara(empleado || empleadoSelect.value || storedEmpleado || '');
+  }
+  actualizarContadorDisplay(empleadoSelect.value || storedEmpleado || '');
+
+  empleadoSelect.addEventListener('change', () => {
+    const nombre = empleadoSelect.value;
+    localStorage.setItem('empleadoSeleccionado', nombre);
+    actualizarContadorDisplay(nombre);
+    renderizarEventos(); // actualizar vista (empleado puede ver solo lo suyo)
+  });
+
+  /******************************************
+   Inicializar FullCalendar
+  ******************************************/
+  const calendarEl = document.getElementById('calendar');
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    initialDate: CALENDAR_START,
+    firstDay: 1, // lunes
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: ''
+    },
+    validRange: {
+      start: CALENDAR_START,
+      end: CALENDAR_END
+    },
+    height: 'auto',
+    dateClick: function(info) {
+      selectedDateISO = info.dateStr;
+      abrirModalConFecha(info.dateStr);
+    },
+    events: [] // rellenado dinámico
+  });
+  calendar.render();
+
+  /******************************************
+   Modal: abrir/cerrar y prellenado
+  ******************************************/
+  const modal = document.getElementById('modal');
+  const closeModalBtn = document.getElementById('closeModal');
+  const tipoInput = document.getElementById('tipo');
+  const desdeInput = document.getElementById('desde');
+  const hastaInput = document.getElementById('hasta');
+  const comentariosInput = document.getElementById('comentarios');
+  const todoDiaBtn = document.getElementById('todoDia');
+  const form = document.getElementById('solicitudForm');
+  const cancelBtn = document.getElementById('cancelBtn');
+
+  function abrirModalConFecha(fechaISO) {
+    modal.style.display = 'flex';
+    desdeInput.value = fechaISO + 'T09:00';
+    hastaInput.value = fechaISO + 'T18:00';
+    tipoInput.value = '';
+    comentariosInput.value = '';
+  }
+  function cerrarModal() { modal.style.display = 'none'; }
+
+  closeModalBtn.addEventListener('click', cerrarModal);
+  cancelBtn.addEventListener('click', (e) => { e.preventDefault(); cerrarModal(); });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) cerrarModal();
+  });
+
+  // "Todo el día" setea 00:00 - 23:59
+  todoDiaBtn.addEventListener('click', () => {
+    const desdeVal = desdeInput.value;
+    if (!desdeVal) {
+      alert('Selecciona primero una fecha (haz clic en un día).');
+      return;
+    }
+    const fecha = desdeVal.split('T')[0];
+    desdeInput.value = fecha + 'T00:00';
+    hastaInput.value = fecha + 'T23:59';
+  });
+
+  /******************************************
+   Renderizar eventos en calendar según permisos
+  ******************************************/
+  function renderizarEventos() {
+    calendar.getEvents().forEach(ev => ev.remove());
+    const allEvents = obtenerEventos();
+    const empleadoActual = empleadoSelect.value || localStorage.getItem('empleadoSeleccionado') || '';
+
+    allEvents.forEach(e => {
+      // si no es admin, mostramos solo eventos del empleado actual
+      if (!isAdmin && empleadoActual && e.employee !== empleadoActual) return;
+      // crear objeto para FullCalendar
+      const evObj = {
+        id: e.id,
+        title: e.employee + (isAdmin ? ' — ' + e.type : ''), // admin ve tipo también
+        start: e.allDay ? e.fromDate.split('T')[0] : e.fromDate,
+        end: e.allDay ? nextDateISO(e.toDate.split('T')[0]) : e.toDate,
+        allDay: e.allDay,
+        backgroundColor: (e.type === 'Vacaciones' ? '#d8c3a5' : '#e6d1be'),
+        borderColor: '#b8926f',
+        textColor: '#3d2f2a',
+        extendedProps: { raw: e }
+      };
+      calendar.addEvent(evObj);
+    });
+  }
+
+  function nextDateISO(ymd) {
+    const d = new Date(ymd);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  }
+
+  /******************************************
+   Contador: cálculo de días inclusive
+  ******************************************/
+  function diasEntreInclusive(desdeISO, hastaISO) {
+    const d1 = new Date(desdeISO);
+    const d2 = new Date(hastaISO);
+    const msDia = 1000 * 60 * 60 * 24;
+    const diff = Math.floor((Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate()) - Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate())) / msDia) + 1;
+    return diff;
+  }
+
+  /******************************************
+   Envío de formulario: EmailJS + guardar evento + descontar días
+  ******************************************/
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const empleado = empleadoSelect.value;
+    const tipo = tipoInput.value;
+    const desde = desdeInput.value;
+    const hasta = hastaInput.value;
+    const comentarios = comentariosInput.value || '';
+
+    if (!empleado) { alert('Por favor selecciona tu nombre.'); return; }
+    if (!tipo) { alert('Por favor selecciona tipo de solicitud.'); return; }
+    if (!desde || !hasta) { alert('Por favor selecciona desde y hasta.'); return; }
+
+    const diasSolicitados = diasEntreInclusive(desde, hasta);
+    const disponibles = obtenerDiasPara(empleado);
+
+    if ((tipo === 'Vacaciones' || tipo === 'Día libre') && diasSolicitados > disponibles) {
+      if (!confirm(`Atención: ${empleado} solo tiene ${disponibles} días disponibles. ¿Deseas enviar la solicitud de todos modos?`)) {
         return;
       }
-
-      const templateParams = {
-        employee: empleado,
-        type: tipo,
-        from_date: desde,
-        to_date: hasta,
-        comments: comentarios
-      };
-
-      // Enviar correo con EmailJS
-      emailjs.send(service_6wnk6kc , template_lwbjymg, templateParams)
-        .then(() => {
-          alert("✅ Solicitud enviada con éxito. Gracias, " + empleado + ".");
-          cerrarModal();
-          document.getElementById('solicitudForm').reset();
-        })
-        .catch(() => alert("❌ Error al enviar la solicitud. Revisa tu conexión."));
-    });
-
-    // Cerrar modal al hacer clic fuera
-    window.onclick = function(event) {
-      if (event.target == modal) cerrarModal();
     }
-  </script>
-  <!-- Carga la librería de EmailJS -->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-<!-- Configura EmailJS -->
-<script type="text/javascript">
-  (function() {
-    emailjs.init({
-      publicKey: "H0nest.2024!" // <- reemplaza con tu clave real
+    const allDay = (desde.endsWith('T00:00') && (hasta.endsWith('T23:59') || hasta.endsWith('T24:00')));
+
+    // preparar los params para EmailJS (y asunto)
+    const desdeDate = desde.split('T')[0];
+    const hastaDate = hasta.split('T')[0];
+    const asunto = `[${tipo}] ${empleado} — del ${desdeDate} al ${hastaDate}`;
+    const params = {
+      employee: empleado,
+      type: tipo,
+      from_date: desde,
+      to_date: hasta,
+      comments: comentarios,
+      days_requested: diasSolicitados,
+      days_remaining_before: obtenerDiasPara(empleado),
+      all_day: allDay ? "Sí" : "No",
+      subject: asunto,
+      to_email: "am.fortuny@honestgreens.com"
+    };
+
+    // enviar por EmailJS
+    emailjs.send(SERVICE_ID, TEMPLATE_ID, params)
+      .then(() => {
+        // guardar evento localmente
+        const evts = obtenerEventos();
+        const id = 'evt_' + Date.now();
+        const newEvent = {
+          id,
+          employee: empleado,
+          type: tipo,
+          fromDate: desde,
+          toDate: hasta,
+          comments: comentarios,
+          days: diasSolicitados,
+          allDay: allDay,
+          createdAt: new Date().toISOString()
+        };
+        evts.push(newEvent);
+        guardarEventos(evts);
+
+        // descontar días si aplica
+        if (tipo === 'Vacaciones' || tipo === 'Día libre') {
+          const actuales = obtenerDiasPara(empleado);
+          const nuevos = Math.max(0, actuales - diasSolicitados);
+          guardarDiasPara(empleado, nuevos);
+        }
+
+        actualizarContadorDisplay(empleado);
+        renderizarEventos();
+
+        alert('✅ Solicitud enviada. Gracias, ' + empleado + '.');
+        cerrarModal();
+        form.reset();
+      })
+      .catch((err) => {
+        console.error('EmailJS error:', err);
+        alert('❌ Error al enviar la solicitud. Revisa la configuración de EmailJS o tu conexión.');
+      });
+  });
+
+  /******************************************
+   Inicial render
+  ******************************************/
+  renderizarEventos();
+
+  /******************************************
+   ADMIN: ventana emergente y vista completa
+  ******************************************/
+  const adminBtn = document.getElementById('adminBtn');
+  const adminModal = document.getElementById('adminModal');
+  const closeAdmin = document.getElementById('closeAdmin');
+  const closeAdminBtn = document.getElementById('closeAdminBtn');
+  const enterAdminBtn = document.getElementById('enterAdmin');
+  const adminPasswordInput = document.getElementById('adminPassword');
+  const adminMsg = document.getElementById('adminMsg');
+
+  adminBtn.addEventListener('click', () => {
+    adminModal.style.display = 'flex';
+    adminPasswordInput.value = '';
+    adminMsg.textContent = '';
+  });
+  closeAdmin.addEventListener('click', () => adminModal.style.display = 'none');
+  closeAdminBtn.addEventListener('click', () => adminModal.style.display = 'none');
+  enterAdminBtn.addEventListener('click', () => {
+    const val = adminPasswordInput.value.trim();
+    if (val === ADMIN_PASSWORD) {
+      isAdmin = true;
+      localStorage.setItem('og_admin', '1');
+      adminModal.style.display = 'none';
+      alert('🔒 Modo administrador activado. Ahora ves todas las solicitudes.');
+      // mostrar contador general y botones admin
+      mostrarVistaAdmin();
+    } else {
+      adminMsg.textContent = 'Clave incorrecta';
+    }
+  });
+
+  // si ya estaba admin en localStorage, activar
+  if (localStorage.getItem('og_admin') === '1') {
+    isAdmin = true;
+    // (no mostrar modal) pero dar acceso directo
+    mostrarVistaAdmin();
+  }
+
+  function mostrarVistaAdmin() {
+    // como admin, mostramos todo: actualizamos contador para indicar 'vista admin'
+    document.getElementById('contador').innerHTML = 'Modo administrador — <button id="salirAdmin" class="btn secondary">Salir</button>';
+    const salirBtn = document.getElementById('salirAdmin');
+    salirBtn.addEventListener('click', () => {
+      isAdmin = false;
+      localStorage.removeItem('og_admin');
+      // restaurar contador para empleado actual
+      actualizarContadorDisplay(empleadoSelect.value || '');
+      renderizarEventos();
+      location.reload();
     });
-  })();
-  <script>
-function enviarSolicitud() {
-  const nombre = document.getElementById("empleado").value;
-  const tipo = document.getElementById("tipo").value;
-  const desde = document.getElementById("desde").value;
-  const hasta = document.getElementById("hasta").value;
-  const comentarios = document.getElementById("comentarios").value;
 
-  emailjs.send("TU_SERVICE_ID", "TU_TEMPLATE_ID", {
-    nombre: nombre,
-    tipo: tipo,
-    desde: desde,
-    hasta: hasta,
-    comentarios: comentarios
-  })
-  .then(() => alert("✅ Solicitud enviada con éxito"))
-  .catch(err => alert("❌ Error al enviar la solicitud: " + JSON.stringify(err)));
-}
-</script>
-<button type="button" onclick="enviarSolicitud()">Enviar solicitud</button>
+    // además mostramos un pequeño panel admin (opcional) con botón para reiniciar días
+    const adminPanel = document.createElement('div');
+    adminPanel.style.marginTop = '10px';
+    adminPanel.style.padding = '10px';
+    adminPanel.style.background = 'linear-gradient(90deg,#fffaf5,#fff)';
+    adminPanel.style.borderRadius = '8px';
+    adminPanel.style.boxShadow = '0 4px 8px rgba(0,0,0,0.04)';
+    adminPanel.innerHTML = `
+      <div style="font-weight:700;color:var(--accent-dark);margin-bottom:8px">Panel administrador</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="verTodos" class="btn secondary">Ver historial (tabla)</button>
+        <button id="reiniciarDias" class="btn">Reiniciar días a 30</button>
+        <button id="descargarCSV" class="btn secondary">Exportar CSV</button>
+      </div>
+      <div id="adminTableWrap" style="margin-top:12px"></div>
+    `;
+    document.querySelector('.wrap').insertBefore(adminPanel, document.getElementById('calendar'));
 
-</script>
+    document.getElementById('verTodos').addEventListener('click', mostrarTablaAdmin);
+    document.getElementById('reiniciarDias').addEventListener('click', () => {
+      if (!confirm('¿Seguro que quieres reiniciar los días de todos a 30?')) return;
+      const empleados = Array.from(empleadoSelect.options).map(o => o.value).filter(v => v);
+      empleados.forEach(emp => guardarDiasPara(emp, DIAS_VACACIONES_TOTALES));
+      alert('Días reiniciados.');
+      actualizarContadorDisplay(empleadoSelect.value || '');
+    });
+    document.getElementById('descargarCSV').addEventListener('click', exportarCSV);
+    renderizarEventos();
+  }
 
+  function mostrarTablaAdmin() {
+    const wrap = document.getElementById('adminTableWrap');
+    const evts = obtenerEventos();
+    if (!evts.length) { wrap.innerHTML = '<div class="small-muted">No hay solicitudes</div>'; return; }
+    let html = '<table style="width:100%;border-collapse:collapse"><thead><tr style="text-align:left"><th>Empleado</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Comentarios</th></tr></thead><tbody>';
+    evts.forEach(ev => {
+      html += `<tr><td style="padding:6px 4px">${ev.employee}</td><td style="padding:6px 4px">${ev.type}</td><td style="padding:6px 4px">${ev.fromDate.replace('T',' ')}</td><td style="padding:6px 4px">${ev.toDate.replace('T',' ')}</td><td style="padding:6px 4px">${ev.days}</td><td style="padding:6px 4px">${(ev.comments||'')}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  }
+
+  function exportarCSV() {
+    const evts = obtenerEventos();
+    if (!evts.length) { alert('No hay datos para exportar'); return; }
+    const rows = [['Empleado','Tipo','Desde','Hasta','Días','Comentarios','Creado']];
+    evts.forEach(e => rows.push([e.employee, e.type, e.fromDate, e.toDate, e.days, (e.comments||''), e.createdAt]));
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'solicitudes_organizador_fortuny.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /******************************************
+   Helper: re-render events when needed
+  ******************************************/
+  function renderizarEventos() {
+    // actualizar contador por empleado (si no admin)
+    if (!isAdmin) actualizarContadorDisplay(empleadoSelect.value || storedEmpleado || '');
+    calendar.getEvents().forEach(ev => ev.remove());
+    const evts = obtenerEventos();
+    const current = empleadoSelect.value || storedEmpleado || '';
+
+    evts.forEach(e => {
+      if (!isAdmin && current && e.employee !== current) return;
+      const allDay = e.allDay;
+      const start = allDay ? e.fromDate.split('T')[0] : e.fromDate;
+      // FullCalendar treats end-exclusive for allDay; earlier code stored end date inclusive
+      const fcEvent = {
+        id: e.id,
+        title: isAdmin ? `${e.employee} — ${e.type}` : `${e.employee}`,
+        start: start,
+        end: allDay ? nextDateISO(e.toDate.split('T')[0]) : e.toDate,
+        allDay: allDay,
+        backgroundColor: (e.type === 'Vacaciones' ? '#d8c3a5' : '#e6d1be'),
+        borderColor: '#b8926f',
+        textColor: '#3d2f2a'
+      };
+      calendar.addEvent(fcEvent);
+    });
+  }
+
+  // render al iniciar (ya llamado anteriormente, pero aseguramos)
+  renderizarEventos();
+
+  </script>
 </body>
 </html>
