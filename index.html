@@ -503,6 +503,38 @@
         };
         evts.push(newEvent);
         guardarEventos(evts);
+document.getElementById("formulario").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const templateParams = {
+    employee: document.getElementById("employee").value,
+    desde_fecha: document.getElementById("from_date").value,
+    to_date: document.getElementById("to_date").value,
+    tipo: document.getElementById("tipo").value,
+    comments: document.getElementById("comments").value,
+    days_requested: calcularDiasSolicitados(),
+    days_remaining_before: obtenerDiasRestantes()
+  };
+
+  emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
+    .then(function(response) {
+      console.log("Correo enviado con éxito", response.status, response.text);
+    }, function(error) {
+      console.error("Error al enviar el correo", error);
+    });
+});
+
+function calcularDiasSolicitados() {
+  const desde = new Date(document.getElementById("from_date").value);
+  const hasta = new Date(document.getElementById("to_date").value);
+  const diferencia = (hasta - desde) / (1000 * 60 * 60 * 24);
+  return diferencia + 1;
+}
+
+function obtenerDiasRestantes() {
+  // Aquí puedes poner tu lógica real
+  return 10; // Ejemplo fijo
+}
 
         // descontar días si aplica
         if (tipo === 'Vacaciones' || tipo === 'Día libre') {
