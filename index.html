@@ -10,13 +10,23 @@
 
   <style>
     :root{
-      --bg:#f6efe6;
-      --panel:#fffaf5;
-      --accent:#8c6b4a; /* marrón suave */
-      --accent-dark:#6e4d3a;
-      --muted:#d8c3a5;
-      --text:#3d2f2a;
+      /* paleta otoñal */
+      --bg:#f3efe7;
+      --panel:#fff8f3;
+      --accent:#a86f3f;
+      --accent-dark:#7e4e2d;
+      --muted:#d6b89a;
+      --text:#362b24;
       --white:#ffffff;
+
+      /* tipos */
+      --vacaciones-dark: #a15a36; /* oscuro rojizo */
+      --libre-light: #f6dcc4; /* claro crema */
+      --asuntos-mid: #d7a67f; /* medio */
+
+      /* status */
+      --status-approved: #7fb26f;
+      --status-rejected: #c86b6b;
     }
     *{box-sizing:border-box}
     body{
@@ -35,7 +45,7 @@
     }
     header h1{ margin:0; font-size:1.25rem; letter-spacing:0.4px; font-weight:700;}
     .wrap{
-      max-width:1000px;
+      max-width:1100px;
       margin:26px auto;
       padding:0 16px 60px;
     }
@@ -101,14 +111,14 @@
     .modal-content{
       background:var(--white);
       width:92%;
-      max-width:520px;
+      max-width:640px;
       border-radius:12px;
       padding:18px;
       box-shadow:0 10px 30px rgba(0,0,0,0.18);
     }
     .modal-content h2{ margin:0 0 8px 0; color:var(--accent-dark); }
     label{ display:block; margin-top:10px; font-weight:600; color:var(--accent-dark); font-size:0.95rem;}
-    input[type="datetime-local"], select, textarea {
+    input[type="datetime-local"], input[type="email"], select, textarea {
       width:100%;
       padding:9px 10px;
       border-radius:8px;
@@ -152,6 +162,11 @@
     @media (max-width:700px){
       .top-row{flex-direction:column;align-items:stretch;}
     }
+
+    /* admin table styling */
+    table.admin-table { width:100%; border-collapse:collapse; margin-top:8px; }
+    table.admin-table th, table.admin-table td { padding:6px 8px; text-align:left; border-bottom:1px solid #f0e7de; font-size:0.9rem; }
+
   </style>
 </head>
 <body>
@@ -205,7 +220,7 @@
   <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal-content" role="document">
       <span class="close" id="closeModal">&times;</span>
-      <h2>Solicitud de tiempo</h2>
+      <h2 id="modalTitle">Solicitud de tiempo</h2>
 
       <form id="solicitudForm" aria-label="Formulario de solicitud">
         <label for="tipo">Tipo de solicitud</label>
@@ -229,21 +244,33 @@
 
         <button type="button" id="todoDia" class="btn secondary">Todo el día</button>
 
+        <label style="margin-top:12px;display:flex;align-items:center;gap:8px">
+          <input id="notifyCheckbox" type="checkbox" style="transform:scale(1.1)"> Deseo recibir notificación
+        </label>
+
+        <div id="emailWrap" style="display:none">
+          <label for="email">Email (opcional, para notificaciones)</label>
+          <input id="email" type="email" placeholder="tu@ejemplo.com">
+        </div>
+
         <label for="comentarios">Comentarios (opcional)</label>
         <textarea id="comentarios" placeholder="Motivo, notas..."></textarea>
 
-        <div style="display:flex;gap:8px;">
-          <button class="btn" type="submit">Enviar solicitud</button>
-          <button class="btn secondary" type="button" id="cancelBtn">Cancelar</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="submitBtn" class="btn" type="submit">Enviar solicitud</button>
+          <button id="saveChangesBtn" class="btn" type="button" style="display:none">Guardar cambios</button>
+          <button id="deleteBtn" class="btn secondary" type="button" style="display:none;background:#e2b7a1;color:var(--accent-dark)">Eliminar</button>
+          <button id="cancelBtn" class="btn secondary" type="button">Cancelar</button>
         </div>
-        <div style="margin-top:8px" class="small-muted">Tu solicitud será enviada a RRHH para su gestión.</div>
+
+        <div style="margin-top:8px" class="small-muted">Tu solicitud será enviada a RRHH para su gestión. Estado inicial: <strong>Pendiente</strong>.</div>
       </form>
     </div>
   </div>
 
   <!-- Admin modal -->
   <div id="adminModal" class="modal" aria-hidden="true">
-    <div class="modal-content" style="max-width:380px">
+    <div class="modal-content" style="max-width:420px">
       <span class="close" id="closeAdmin">&times;</span>
       <h2>Acceso administrador</h2>
       <p class="small-muted">Introduce la clave para ver todas las solicitudes.</p>
@@ -256,17 +283,19 @@
     </div>
   </div>
 
-  <!-- FullCalendar + EmailJS -->
+  <!-- FullCalendar + EmailJS + SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
   /******************************************
-   CONFIG: EmailJS (ya con tus datos)
-   ******************************************/
-  emailjs.init("Q6R8TiTO6mPO8Bzxt"); // Public Key
+   CONFIG: EmailJS (deja como tus datos reales)
+  ******************************************/
+  emailjs.init("Q6R8TiTO6mPO8Bzxt"); // Public Key (mantén tu key)
   const SERVICE_ID = "service_6wnk6kc";
   const TEMPLATE_ID = "template_lwbjymg";
+  const RRHH_EMAIL = "am.fortuny@honestgreens.com";
 
   /******************************************
    CONSTANTES Y ESTADO
@@ -274,26 +303,23 @@
   const DIAS_VACACIONES_TOTALES = 30;
   const CALENDAR_START = '2025-10-01';
   const CALENDAR_END = '2026-12-31';
-  const ADMIN_PASSWORD = 'fortuny2025';
+  const ADMIN_PASSWORD = 'sala2025';
 
   let isAdmin = false;
-  let selectedDateISO = null; // fecha clicada
+  let selectedDateISO = null;
+  let selectedEventId = null;
   const empleadoSelect = document.getElementById('empleadoSelect');
   const diasRestantesEl = document.getElementById('diasRestantes');
 
   /******************************************
-   UTILIDADES STORAGE: eventos y dias
+   STORAGE UTILITIES (key v4)
   ******************************************/
   function obtenerEventos() {
-    const raw = localStorage.getItem('og_events_v1');
-    try {
-      return raw ? JSON.parse(raw) : [];
-    } catch(e){
-      return [];
-    }
+    const raw = localStorage.getItem('og_events_v4');
+    try { return raw ? JSON.parse(raw) : []; } catch(e) { return []; }
   }
   function guardarEventos(evts) {
-    localStorage.setItem('og_events_v1', JSON.stringify(evts));
+    localStorage.setItem('og_events_v4', JSON.stringify(evts));
   }
 
   function obtenerDiasPara(empleado) {
@@ -309,11 +335,11 @@
   function guardarDiasPara(empleado, dias) {
     if (!empleado) return;
     const key = 'og_dias_' + empleado;
-    localStorage.setItem(key, String(dias));
+    localStorage.setItem(key, String(Math.max(0, Number(dias))));
   }
 
   /******************************************
-   Inicializa empleado seleccionado (persistente)
+   Persist selected empleado
   ******************************************/
   const storedEmpleado = localStorage.getItem('empleadoSeleccionado');
   if (storedEmpleado) empleadoSelect.value = storedEmpleado;
@@ -326,7 +352,7 @@
     const nombre = empleadoSelect.value;
     localStorage.setItem('empleadoSeleccionado', nombre);
     actualizarContadorDisplay(nombre);
-    renderizarEventos(); // actualizar vista (empleado puede ver solo lo suyo)
+    renderizarEventos();
   });
 
   /******************************************
@@ -337,26 +363,24 @@
     initialView: 'dayGridMonth',
     initialDate: CALENDAR_START,
     firstDay: 1, // lunes
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: ''
-    },
-    validRange: {
-      start: CALENDAR_START,
-      end: CALENDAR_END
-    },
+    headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+    validRange: { start: CALENDAR_START, end: CALENDAR_END },
     height: 'auto',
     dateClick: function(info) {
+      selectedEventId = null;
       selectedDateISO = info.dateStr;
       abrirModalConFecha(info.dateStr);
     },
-    events: [] // rellenado dinámico
+    eventClick: function(info) {
+      const evRaw = info.event.extendedProps && info.event.extendedProps.raw ? info.event.extendedProps.raw : null;
+      if (evRaw && evRaw.id) abrirModalEdicion(evRaw.id);
+    },
+    events: []
   });
   calendar.render();
 
   /******************************************
-   Modal: abrir/cerrar y prellenado
+   Modal controls and elements
   ******************************************/
   const modal = document.getElementById('modal');
   const closeModalBtn = document.getElementById('closeModal');
@@ -367,70 +391,104 @@
   const todoDiaBtn = document.getElementById('todoDia');
   const form = document.getElementById('solicitudForm');
   const cancelBtn = document.getElementById('cancelBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  const saveChangesBtn = document.getElementById('saveChangesBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const modalTitle = document.getElementById('modalTitle');
+  const notifyCheckbox = document.getElementById('notifyCheckbox');
+  const emailWrap = document.getElementById('emailWrap');
+  const emailInput = document.getElementById('email');
+
+  notifyCheckbox.addEventListener('change', ()=> {
+    emailWrap.style.display = notifyCheckbox.checked ? 'block' : 'none';
+  });
 
   function abrirModalConFecha(fechaISO) {
     modal.style.display = 'flex';
+    modalTitle.textContent = 'Solicitud de tiempo';
     desdeInput.value = fechaISO + 'T09:00';
     hastaInput.value = fechaISO + 'T18:00';
     tipoInput.value = '';
     comentariosInput.value = '';
+    notifyCheckbox.checked = false;
+    emailWrap.style.display = 'none';
+    emailInput.value = '';
+    selectedEventId = null;
+    submitBtn.style.display = '';
+    saveChangesBtn.style.display = 'none';
+    deleteBtn.style.display = 'none';
+    // remove admin action row if any
+    const r = document.getElementById('adminActionRow'); if (r) r.remove();
   }
-  function cerrarModal() { modal.style.display = 'none'; }
+
+  function abrirModalEdicion(eventId) {
+    const evts = obtenerEventos();
+    const ev = evts.find(x => x.id === eventId);
+    if (!ev) return alert('Evento no encontrado');
+    selectedEventId = ev.id;
+    modal.style.display = 'flex';
+    modalTitle.textContent = `Solicitud — ${ev.employee} (${ev.status})`;
+    tipoInput.value = ev.type;
+    desdeInput.value = ev.fromDate;
+    hastaInput.value = ev.toDate;
+    comentariosInput.value = ev.comments || '';
+    notifyCheckbox.checked = !!ev.notifyEmail;
+    emailWrap.style.display = notifyCheckbox.checked ? 'block' : 'none';
+    emailInput.value = ev.email || '';
+    submitBtn.style.display = 'none';
+    saveChangesBtn.style.display = '';
+    deleteBtn.style.display = '';
+    // propietario solo puede editar/eliminar si es suyo y estado pendiente
+    const current = empleadoSelect.value || localStorage.getItem('empleadoSeleccionado') || '';
+    if (!isAdmin && ev.employee !== current) {
+      saveChangesBtn.style.display = 'none';
+      deleteBtn.style.display = 'none';
+    } else if (!isAdmin && ev.status !== 'Pendiente') {
+      saveChangesBtn.style.display = 'none';
+      deleteBtn.style.display = 'none';
+    }
+    // add admin action buttons if admin
+    actualizarBotonesAdminEnModal(ev);
+  }
+
+  function actualizarBotonesAdminEnModal(ev){
+    const existControl = document.getElementById('adminActionRow');
+    if (existControl) existControl.remove();
+    if (!isAdmin) return;
+    const row = document.createElement('div');
+    row.id = 'adminActionRow';
+    row.style.marginTop = '10px';
+    row.style.display = 'flex';
+    row.style.gap = '8px';
+    row.innerHTML = `
+      <button id="approveBtn" class="btn" type="button">Aprobar</button>
+      <button id="rejectBtn" class="btn secondary" type="button" style="background:#f0c4c0;color:var(--accent-dark)">Rechazar</button>
+      <div style="align-self:center;font-weight:700;color:${ev.status === 'Aprobada' ? 'var(--status-approved)' : ev.status === 'Rechazada' ? 'var(--status-rejected)' : 'var(--accent-dark)'};margin-left:10px">${ev.status}</div>
+    `;
+    document.querySelector('.modal-content form').appendChild(row);
+    document.getElementById('approveBtn').addEventListener('click', ()=> accionAprobarRechazar(ev.id, 'Aprobada'));
+    document.getElementById('rejectBtn').addEventListener('click', ()=> accionAprobarRechazar(ev.id, 'Rechazada'));
+  }
+
+  function cerrarModal() {
+    modal.style.display = 'none';
+    const r = document.getElementById('adminActionRow'); if (r) r.remove();
+  }
 
   closeModalBtn.addEventListener('click', cerrarModal);
   cancelBtn.addEventListener('click', (e) => { e.preventDefault(); cerrarModal(); });
+  window.addEventListener('click', (e) => { if (e.target === modal) cerrarModal(); });
 
-  window.addEventListener('click', (e) => {
-    if (e.target === modal) cerrarModal();
-  });
-
-  // "Todo el día" setea 00:00 - 23:59
   todoDiaBtn.addEventListener('click', () => {
     const desdeVal = desdeInput.value;
-    if (!desdeVal) {
-      alert('Selecciona primero una fecha (haz clic en un día).');
-      return;
-    }
+    if (!desdeVal) { alert('Selecciona primero una fecha (haz clic en un día).'); return; }
     const fecha = desdeVal.split('T')[0];
     desdeInput.value = fecha + 'T00:00';
     hastaInput.value = fecha + 'T23:59';
   });
 
   /******************************************
-   Renderizar eventos en calendar según permisos
-  ******************************************/
-  function renderizarEventos() {
-    calendar.getEvents().forEach(ev => ev.remove());
-    const allEvents = obtenerEventos();
-    const empleadoActual = empleadoSelect.value || localStorage.getItem('empleadoSeleccionado') || '';
-
-    allEvents.forEach(e => {
-      // si no es admin, mostramos solo eventos del empleado actual
-      if (!isAdmin && empleadoActual && e.employee !== empleadoActual) return;
-      // crear objeto para FullCalendar
-      const evObj = {
-        id: e.id,
-        title: e.employee + (isAdmin ? ' — ' + e.type : ''), // admin ve tipo también
-        start: e.allDay ? e.fromDate.split('T')[0] : e.fromDate,
-        end: e.allDay ? nextDateISO(e.toDate.split('T')[0]) : e.toDate,
-        allDay: e.allDay,
-        backgroundColor: (e.type === 'Vacaciones' ? '#d8c3a5' : '#e6d1be'),
-        borderColor: '#b8926f',
-        textColor: '#3d2f2a',
-        extendedProps: { raw: e }
-      };
-      calendar.addEvent(evObj);
-    });
-  }
-
-  function nextDateISO(ymd) {
-    const d = new Date(ymd);
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
-  }
-
-  /******************************************
-   Contador: cálculo de días inclusive
+   Helpers: días inclusivos y colores
   ******************************************/
   function diasEntreInclusive(desdeISO, hastaISO) {
     const d1 = new Date(desdeISO);
@@ -439,18 +497,66 @@
     const diff = Math.floor((Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate()) - Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate())) / msDia) + 1;
     return diff;
   }
+  function nextDateISO(ymd) {
+    const d = new Date(ymd);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  }
+  function colorParaEvento(type, status){
+    const base = (type === 'Vacaciones') ? getComputedStyle(document.documentElement).getPropertyValue('--vacaciones-dark').trim()
+      : (type === 'Día libre') ? getComputedStyle(document.documentElement).getPropertyValue('--libre-light').trim()
+      : getComputedStyle(document.documentElement).getPropertyValue('--asuntos-mid').trim();
+    const border = (status === 'Aprobada') ? getComputedStyle(document.documentElement).getPropertyValue('--status-approved').trim()
+      : (status === 'Rechazada') ? getComputedStyle(document.documentElement).getPropertyValue('--status-rejected').trim()
+      : '#b8926f';
+    return { background: base, border: border };
+  }
 
   /******************************************
-   Envío de formulario: EmailJS + guardar evento + descontar días
+   Render eventos en calendario (según permisos)
+  ******************************************/
+  function renderizarEventos() {
+    calendar.getEvents().forEach(ev => ev.remove());
+    const evts = obtenerEventos();
+    const empleadoActual = empleadoSelect.value || localStorage.getItem('empleadoSeleccionado') || '';
+    evts.forEach(e => {
+      if (!isAdmin && empleadoActual && e.employee !== empleadoActual) return;
+      const allDay = e.allDay;
+      const start = allDay ? e.fromDate.split('T')[0] : e.fromDate;
+      const evTitle = isAdmin ? `${e.employee} — ${e.type} (${e.status})` : `${e.employee}`;
+      const colors = colorParaEvento(e.type, e.status);
+      const fcEvent = {
+        id: e.id,
+        title: evTitle,
+        start: start,
+        end: allDay ? nextDateISO(e.toDate.split('T')[0]) : e.toDate,
+        allDay: allDay,
+        backgroundColor: colors.background,
+        borderColor: colors.border,
+        textColor: '#3d2f2a',
+        extendedProps: { raw: e }
+      };
+      calendar.addEvent(fcEvent);
+    });
+    if (!isAdmin) actualizarContadorDisplay(empleadoSelect.value || storedEmpleado || '');
+  }
+
+  /******************************************
+   Crear solicitud: guarda y notifica a RRHH
+   - Si type === 'Vacaciones', descontar inmediatamente (no dejar negativo)
+   - marcar campo `deducted: true` si se descontó
   ******************************************/
   form.addEventListener('submit', function(e) {
     e.preventDefault();
+    if (selectedEventId) return;
 
     const empleado = empleadoSelect.value;
     const tipo = tipoInput.value;
     const desde = desdeInput.value;
     const hasta = hastaInput.value;
     const comentarios = comentariosInput.value || '';
+    const notify = notifyCheckbox.checked;
+    const email = (notify && emailInput.value) ? emailInput.value.trim() : '';
 
     if (!empleado) { alert('Por favor selecciona tu nombre.'); return; }
     if (!tipo) { alert('Por favor selecciona tipo de solicitud.'); return; }
@@ -459,18 +565,38 @@
     const diasSolicitados = diasEntreInclusive(desde, hasta);
     const disponibles = obtenerDiasPara(empleado);
 
-    if ((tipo === 'Vacaciones' || tipo === 'Día libre') && diasSolicitados > disponibles) {
-      if (!confirm(`Atención: ${empleado} solo tiene ${disponibles} días disponibles. ¿Deseas enviar la solicitud de todos modos?`)) {
-        return;
-      }
+    if (tipo === 'Vacaciones' && diasSolicitados > disponibles) {
+      if (!confirm(`Atención: ${empleado} solo tiene ${disponibles} días disponibles. ¿Deseas enviar la solicitud de todos modos?`)) return;
     }
 
     const allDay = (desde.endsWith('T00:00') && (hasta.endsWith('T23:59') || hasta.endsWith('T24:00')));
+    const id = 'evt_' + Date.now();
+    const newEvent = {
+      id,
+      employee: empleado,
+      type: tipo,
+      fromDate: desde,
+      toDate: hasta,
+      comments: comentarios,
+      days: diasSolicitados,
+      allDay: allDay,
+      createdAt: new Date().toISOString(),
+      status: 'Pendiente',
+      notifyEmail: !!email,
+      email: email || '',
+      deducted: false // si aplicamos descuento lo marcamos true
+    };
 
-    // preparar los params para EmailJS (y asunto)
-    const desdeDate = desde.split('T')[0];
-    const hastaDate = hasta.split('T')[0];
-    const asunto = `[${tipo}] ${empleado} — del ${desdeDate} al ${hastaDate}`;
+    // Si es Vacaciones, descontar inmediatamente (según petición)
+    if (tipo === 'Vacaciones') {
+      const actuales = obtenerDiasPara(empleado);
+      const nuevos = Math.max(0, actuales - diasSolicitados);
+      guardarDiasPara(empleado, nuevos);
+      newEvent.deducted = true;
+    }
+
+    // Enviar correo a RRHH notificando nueva solicitud
+    const asunto = `[Solicitud: ${tipo}] ${empleado} — del ${desde.split('T')[0]} al ${hasta.split('T')[0]}`;
     const params = {
       employee: empleado,
       type: tipo,
@@ -478,91 +604,191 @@
       to_date: hasta,
       comments: comentarios,
       days_requested: diasSolicitados,
-      days_remaining_before: obtenerDiasPara(empleado),
-      all_day: allDay ? "Sí" : "No",
+      days_remaining_before: obtenerDiasPara(empleado) + (newEvent.deducted ? diasSolicitados : 0),
+      all_day: newEvent.allDay ? "Sí" : "No",
       subject: asunto,
-      to_email: "am.fortuny@honestgreens.com"
+      to_email: RRHH_EMAIL
     };
 
-    // enviar por EmailJS
     emailjs.send(SERVICE_ID, TEMPLATE_ID, params)
       .then(() => {
-        // guardar evento localmente
         const evts = obtenerEventos();
-        const id = 'evt_' + Date.now();
-        const newEvent = {
-          id,
-          employee: empleado,
-          type: tipo,
-          fromDate: desde,
-          toDate: hasta,
-          comments: comentarios,
-          days: diasSolicitados,
-          allDay: allDay,
-          createdAt: new Date().toISOString()
-        };
         evts.push(newEvent);
         guardarEventos(evts);
-document.getElementById("formulario").addEventListener("submit", function(e) {
-  e.preventDefault();
-
-  const templateParams = {
-    employee: document.getElementById("employee").value,
-    desde_fecha: document.getElementById("from_date").value,
-    to_date: document.getElementById("to_date").value,
-    tipo: document.getElementById("tipo").value,
-    comments: document.getElementById("comments").value,
-    days_requested: calcularDiasSolicitados(),
-    days_remaining_before: obtenerDiasRestantes()
-  };
-
-  emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
-    .then(function(response) {
-      console.log("Correo enviado con éxito", response.status, response.text);
-    }, function(error) {
-      console.error("Error al enviar el correo", error);
-    });
-});
-
-function calcularDiasSolicitados() {
-  const desde = new Date(document.getElementById("from_date").value);
-  const hasta = new Date(document.getElementById("to_date").value);
-  const diferencia = (hasta - desde) / (1000 * 60 * 60 * 24);
-  return diferencia + 1;
-}
-
-function obtenerDiasRestantes() {
-  // Aquí puedes poner tu lógica real
-  return 10; // Ejemplo fijo
-}
-
-        // descontar días si aplica
-        if (tipo === 'Vacaciones' || tipo === 'Día libre') {
-          const actuales = obtenerDiasPara(empleado);
-          const nuevos = Math.max(0, actuales - diasSolicitados);
-          guardarDiasPara(empleado, nuevos);
-        }
-
-        actualizarContadorDisplay(empleado);
         renderizarEventos();
-
-        alert('✅ Solicitud enviada. Gracias, ' + empleado + '.');
+        alert('✅ Solicitud enviada y marcada como PENDIENTE. Gracias, ' + empleado + '.');
         cerrarModal();
         form.reset();
       })
       .catch((err) => {
         console.error('EmailJS error:', err);
-        alert('❌ Error al enviar la solicitud. Revisa la configuración de EmailJS o tu conexión.');
+        // Si fallo el envío de correo a RRHH, revertimos descuento si lo aplicamos
+        if (newEvent.deducted) {
+          const actuales = obtenerDiasPara(empleado);
+          guardarDiasPara(empleado, actuales + diasSolicitados);
+        }
+        alert('❌ Error al notificar a RRHH. La solicitud no fue guardada.');
       });
   });
 
   /******************************************
-   Inicial render
+   Guardar cambios sobre solicitud existente
+   - Solo propietarios en estado Pendiente pueden editar (admin puede siempre)
+   - Si event.deducted true (se descontó antes), ajustamos días restantes en función del delta
   ******************************************/
-  renderizarEventos();
+  saveChangesBtn.addEventListener('click', () => {
+    if (!selectedEventId) return;
+    const evts = obtenerEventos();
+    const idx = evts.findIndex(x=>x.id===selectedEventId);
+    if (idx === -1) return alert('Evento no encontrado.');
+
+    const tipo = tipoInput.value;
+    const desde = desdeInput.value;
+    const hasta = hastaInput.value;
+    const comentarios = comentariosInput.value || '';
+    const notify = notifyCheckbox.checked;
+    const email = (notify && emailInput.value) ? emailInput.value.trim() : '';
+
+    if (!tipo || !desde || !hasta) { alert('Rellena tipo, desde y hasta.'); return; }
+
+    const diasSolicitados = diasEntreInclusive(desde, hasta);
+    const ev = evts[idx];
+
+    // si antes se había descontado (evento.deducted === true), ajustamos días restantes:
+    if (ev.deducted) {
+      const actuales = obtenerDiasPara(ev.employee);
+      // actuales ya reflejan la deducción hecha inicialmente, por eso para recalcular:
+      // revertimos la deducción original y aplicamos la nueva
+      const revert = actuales + ev.days;
+      const reaplicar = Math.max(0, revert - (tipo === 'Vacaciones' ? diasSolicitados : 0));
+      guardarDiasPara(ev.employee, reaplicar);
+      ev.deducted = (tipo === 'Vacaciones');
+    } else {
+      // si antes no se descontó, pero ahora pasa a Vacaciones y estamos permitidos a descontar
+      if (!ev.deducted && tipo === 'Vacaciones') {
+        const actuales = obtenerDiasPara(ev.employee);
+        const nuevos = Math.max(0, actuales - diasSolicitados);
+        guardarDiasPara(ev.employee, nuevos);
+        ev.deducted = true;
+      }
+    }
+
+    // actualizar campos
+    ev.type = tipo;
+    ev.fromDate = desde;
+    ev.toDate = hasta;
+    ev.comments = comentarios;
+    ev.days = diasSolicitados;
+    ev.notifyEmail = notify;
+    ev.email = email || '';
+
+    guardarEventos(evts);
+    renderizarEventos();
+    alert('Cambios guardados.');
+    cerrarModal();
+  });
 
   /******************************************
-   ADMIN: ventana emergente y vista completa
+   Eliminar solicitud
+   - Confirmación
+   - Si el evento tenía deducción aplicada, restaurar días
+  ******************************************/
+  deleteBtn.addEventListener('click', () => {
+    if (!selectedEventId) return;
+    if (!confirm('¿Seguro que quieres eliminar esta solicitud?')) return;
+    const evts = obtenerEventos();
+    const idx = evts.findIndex(x=>x.id===selectedEventId);
+    if (idx === -1) return alert('Evento no encontrado.');
+    const ev = evts[idx];
+    // si deducción aplicada (ya restó días), restauramos
+    if (ev.deducted) {
+      const actuales = obtenerDiasPara(ev.employee);
+      guardarDiasPara(ev.employee, actuales + ev.days);
+    }
+    evts.splice(idx,1);
+    guardarEventos(evts);
+    renderizarEventos();
+    alert('Solicitud eliminada.');
+    cerrarModal();
+  });
+
+  /******************************************
+   Acciones ADMIN: aprobar/rechazar
+   - Si se rechaza y hubo deducción, restauramos
+   - Si se aprueba y no hubo deducción pero type === 'Vacaciones', aplicamos deducción (por si no se aplicó antes)
+   - Enviamos notificación al solicitante si dejó email
+  ******************************************/
+  function accionAprobarRechazar(eventId, nuevoStatus) {
+    const evts = obtenerEventos();
+    const idx = evts.findIndex(x=>x.id===eventId);
+    if (idx === -1) { alert('Evento no encontrado'); return; }
+    const ev = evts[idx];
+
+    // si rechazamos y ya se había descontado, restaurar
+    if (nuevoStatus === 'Rechazada' && ev.deducted) {
+      const actuales = obtenerDiasPara(ev.employee);
+      guardarDiasPara(ev.employee, actuales + ev.days);
+      ev.deducted = false;
+    }
+
+    // si aprobamos y no se descontó (por alguna razón), aplicar descuento si Vacaciones
+    if (nuevoStatus === 'Aprobada' && !ev.deducted && ev.type === 'Vacaciones') {
+      const actuales = obtenerDiasPara(ev.employee);
+      const nuevos = Math.max(0, actuales - ev.days);
+      guardarDiasPara(ev.employee, nuevos);
+      ev.deducted = true;
+    }
+
+    ev.status = nuevoStatus;
+    guardarEventos(evts);
+    renderizarEventos();
+    cerrarModal();
+
+    // preparar parametros para EmailJS
+    const asunto = `Tu solicitud (${ev.type}) ha sido ${nuevoStatus.toLowerCase()}`;
+    const params = {
+      employee: ev.employee,
+      type: ev.type,
+      from_date: ev.fromDate,
+      to_date: ev.toDate,
+      comments: ev.comments || '',
+      days_requested: ev.days,
+      status: ev.status,
+      subject: asunto,
+      to_email: RRHH_EMAIL
+    };
+
+    // Enviar a RRHH (registro) y, si el empleado dejó email, enviarle notificación también
+    emailjs.send(SERVICE_ID, TEMPLATE_ID, params)
+      .then(() => {
+        if (ev.notifyEmail && ev.email) {
+          // enviar notificación al empleado (puede usar la misma plantilla con distinto asunto/params)
+          const paramsEmp = {
+            ...params,
+            to_email: ev.email,
+            subject: asunto + ' - Sala FORTUNY',
+            note: `Notificación enviada al empleado ${ev.email}`
+          };
+          return emailjs.send(SERVICE_ID, TEMPLATE_ID, paramsEmp)
+            .then(()=> {
+              alert(`Solicitud ${nuevoStatus.toLowerCase()} y notificación enviada al empleado (${ev.email}).`);
+            })
+            .catch(err => {
+              console.error('Error envío a empleado:', err);
+              alert(`Estado cambiado a ${nuevoStatus.toLowerCase()} pero no se pudo enviar notificación al empleado.`);
+            });
+        } else {
+          alert(`Solicitud ${nuevoStatus.toLowerCase()} y notificación enviada a RRHH.`);
+        }
+      })
+      .catch(err => {
+        console.error('Error notificación RRHH:', err);
+        alert(`Estado cambiado a ${nuevoStatus.toLowerCase()} pero hubo un error notificando a RRHH.`);
+      });
+  }
+
+  /******************************************
+   ADMIN: UI, export, panel
   ******************************************/
   const adminBtn = document.getElementById('adminBtn');
   const adminModal = document.getElementById('adminModal');
@@ -586,34 +812,28 @@ function obtenerDiasRestantes() {
       localStorage.setItem('og_admin', '1');
       adminModal.style.display = 'none';
       alert('🔒 Modo administrador activado. Ahora ves todas las solicitudes.');
-      // mostrar contador general y botones admin
       mostrarVistaAdmin();
     } else {
       adminMsg.textContent = 'Clave incorrecta';
     }
   });
 
-  // si ya estaba admin en localStorage, activar
   if (localStorage.getItem('og_admin') === '1') {
     isAdmin = true;
-    // (no mostrar modal) pero dar acceso directo
     mostrarVistaAdmin();
   }
 
   function mostrarVistaAdmin() {
-    // como admin, mostramos todo: actualizamos contador para indicar 'vista admin'
     document.getElementById('contador').innerHTML = 'Modo administrador — <button id="salirAdmin" class="btn secondary">Salir</button>';
     const salirBtn = document.getElementById('salirAdmin');
     salirBtn.addEventListener('click', () => {
       isAdmin = false;
       localStorage.removeItem('og_admin');
-      // restaurar contador para empleado actual
       actualizarContadorDisplay(empleadoSelect.value || '');
       renderizarEventos();
       location.reload();
     });
 
-    // además mostramos un pequeño panel admin (opcional) con botón para reiniciar días
     const adminPanel = document.createElement('div');
     adminPanel.style.marginTop = '10px';
     adminPanel.style.padding = '10px';
@@ -626,6 +846,7 @@ function obtenerDiasRestantes() {
         <button id="verTodos" class="btn secondary">Ver historial (tabla)</button>
         <button id="reiniciarDias" class="btn">Reiniciar días a 30</button>
         <button id="descargarCSV" class="btn secondary">Exportar CSV</button>
+        <button id="exportXLSX" class="btn">Exportar Excel (.xlsx)</button>
       </div>
       <div id="adminTableWrap" style="margin-top:12px"></div>
     `;
@@ -640,6 +861,7 @@ function obtenerDiasRestantes() {
       actualizarContadorDisplay(empleadoSelect.value || '');
     });
     document.getElementById('descargarCSV').addEventListener('click', exportarCSV);
+    document.getElementById('exportXLSX').addEventListener('click', exportarXLSX);
     renderizarEventos();
   }
 
@@ -647,19 +869,32 @@ function obtenerDiasRestantes() {
     const wrap = document.getElementById('adminTableWrap');
     const evts = obtenerEventos();
     if (!evts.length) { wrap.innerHTML = '<div class="small-muted">No hay solicitudes</div>'; return; }
-    let html = '<table style="width:100%;border-collapse:collapse"><thead><tr style="text-align:left"><th>Empleado</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Comentarios</th></tr></thead><tbody>';
+    let html = '<table class="admin-table"><thead><tr><th>Empleado</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Estado</th><th>Email</th><th>Comentarios</th><th>Acciones</th></tr></thead><tbody>';
     evts.forEach(ev => {
-      html += `<tr><td style="padding:6px 4px">${ev.employee}</td><td style="padding:6px 4px">${ev.type}</td><td style="padding:6px 4px">${ev.fromDate.replace('T',' ')}</td><td style="padding:6px 4px">${ev.toDate.replace('T',' ')}</td><td style="padding:6px 4px">${ev.days}</td><td style="padding:6px 4px">${(ev.comments||'')}</td></tr>`;
+      html += `<tr>
+        <td>${ev.employee}</td>
+        <td>${ev.type}</td>
+        <td>${ev.fromDate.replace('T',' ')}</td>
+        <td>${ev.toDate.replace('T',' ')}</td>
+        <td>${ev.days}</td>
+        <td style="font-weight:700;color:${ev.status === 'Aprobada' ? 'var(--status-approved)' : ev.status === 'Rechazada' ? 'var(--status-rejected)' : 'var(--accent-dark)'}">${ev.status}</td>
+        <td>${ev.email || ''}</td>
+        <td>${(ev.comments||'')}</td>
+        <td><button class="btn small" data-id="${ev.id}" style="padding:6px 8px;font-size:0.85rem">Abrir</button></td>
+      </tr>`;
     });
     html += '</tbody></table>';
     wrap.innerHTML = html;
+    wrap.querySelectorAll('button[data-id]').forEach(b=>{
+      b.addEventListener('click', ()=> abrirModalEdicion(b.getAttribute('data-id')));
+    });
   }
 
   function exportarCSV() {
     const evts = obtenerEventos();
     if (!evts.length) { alert('No hay datos para exportar'); return; }
-    const rows = [['Empleado','Tipo','Desde','Hasta','Días','Comentarios','Creado']];
-    evts.forEach(e => rows.push([e.employee, e.type, e.fromDate, e.toDate, e.days, (e.comments||''), e.createdAt]));
+    const rows = [['Empleado','Tipo','Desde','Hasta','Días','Estado','Email','Comentarios','Creado']];
+    evts.forEach(e => rows.push([e.employee, e.type, e.fromDate, e.toDate, e.days, e.status, e.email || '', (e.comments||''), e.createdAt]));
     const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
     const url = URL.createObjectURL(blob);
@@ -670,36 +905,29 @@ function obtenerDiasRestantes() {
     URL.revokeObjectURL(url);
   }
 
-  /******************************************
-   Helper: re-render events when needed
-  ******************************************/
-  function renderizarEventos() {
-    // actualizar contador por empleado (si no admin)
-    if (!isAdmin) actualizarContadorDisplay(empleadoSelect.value || storedEmpleado || '');
-    calendar.getEvents().forEach(ev => ev.remove());
+  function exportarXLSX() {
     const evts = obtenerEventos();
-    const current = empleadoSelect.value || storedEmpleado || '';
-
-    evts.forEach(e => {
-      if (!isAdmin && current && e.employee !== current) return;
-      const allDay = e.allDay;
-      const start = allDay ? e.fromDate.split('T')[0] : e.fromDate;
-      // FullCalendar treats end-exclusive for allDay; earlier code stored end date inclusive
-      const fcEvent = {
-        id: e.id,
-        title: isAdmin ? `${e.employee} — ${e.type}` : `${e.employee}`,
-        start: start,
-        end: allDay ? nextDateISO(e.toDate.split('T')[0]) : e.toDate,
-        allDay: allDay,
-        backgroundColor: (e.type === 'Vacaciones' ? '#d8c3a5' : '#e6d1be'),
-        borderColor: '#b8926f',
-        textColor: '#3d2f2a'
-      };
-      calendar.addEvent(fcEvent);
-    });
+    if (!evts.length) { alert('No hay datos para exportar'); return; }
+    const rows = evts.map(e => ({
+      Empleado: e.employee,
+      Tipo: e.type,
+      Desde: e.fromDate,
+      Hasta: e.toDate,
+      Dias: e.days,
+      Estado: e.status,
+      Email: e.email || '',
+      Comentarios: e.comments || '',
+      Creado: e.createdAt
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Solicitudes');
+    XLSX.writeFile(wb, 'solicitudes_organizador_fortuny.xlsx');
   }
 
-  // render al iniciar (ya llamado anteriormente, pero aseguramos)
+  /******************************************
+   Inicial render
+  ******************************************/
   renderizarEventos();
 
   </script>
