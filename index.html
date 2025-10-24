@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sala - FORTUNY</title>
+
+  <!-- FullCalendar CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet" />
+
+  <style>
+    :root{
+      --bg:#f6f1ea;
+      --panel:#fffefc;
+      --accent:#a86f3f;
+      --accent-dark:#7e4e2d;
+      --muted:#d6b89a;
+      --text:#362b24;
+      --white:#ffffff;
+
+      --vacaciones-dark:#a15a36;
+      --libre-light:#f6dcc4;
+      --asuntos-mid:#d7a67f;
+
+      --status-approved:#7fb26f;
+      --status-rejected:#c86b6b;
+      --shadow: 0 6px 18px rgba(0,0,0,0.06);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+    }
+    header{
+      background:#fffdf9;
+      color:var(--text);
+      padding:20px 12px;
+      text-align:center;
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+      border-bottom:1px solid #f0e7de;
+    }
+    header h1{ margin:0; font-size:1.3rem; letter-spacing:0.4px; font-weight:800;}
+    .wrap{
+      max-width:1200px;
+      margin:22px auto;
+      padding:0 16px 80px;
+    }
+    .top-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:18px;
+    }
+    #infoEmpleado{
+      background:var(--panel);
+      padding:10px 12px;
+      border-radius:10px;
+      box-shadow: var(--shadow);
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    #infoEmpleado select{
+      padding:8px 10px;
+      border-radius:8px;
+      border:1px solid #e6d9c8;
+      background: var(--white);
+      color:var(--text);
+      font-weight:600;
+    }
+    #contador{
+      font-size:0.95rem;
+      color:var(--accent-dark);
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    #adminBtn{
+      background:transparent;
+      border:1px dashed rgba(61,47,42,0.12);
+      padding:6px 10px;
+      border-radius:8px;
+      cursor:pointer;
+      color:var(--accent-dark);
+      font-weight:600;
+    }
+
+    .layout {
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    /* left column admin panel */
+    #adminCol {
+      background:var(--panel);
+      padding:12px;
+      border-radius:12px;
+      box-shadow: var(--shadow);
+      max-height:calc(100vh - 140px);
+      overflow:auto;
+    }
+    .admin-controls { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+    .card-emp {
+      background:#fff;
+      border-radius:10px;
+      padding:10px;
+      margin-bottom:10px;
+      box-shadow:0 6px 14px rgba(0,0,0,0.04);
+      border-left:6px solid #f0e7de;
+    }
+    .emp-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .emp-name { font-weight:800; color:var(--accent-dark); }
+    .emp-days { font-weight:700; color:var(--accent-dark); }
+    .btn-mini { padding:6px 8px; border-radius:8px; font-weight:700; cursor:pointer; border:none; background:var(--muted); color:var(--accent-dark); }
+    .btn-mini.ghost { background:transparent; border:1px solid #efe1d3; }
+
+    .accordion-content { margin-top:8px; display:none; background:#fffaf6; padding:8px; border-radius:8px; box-shadow:inset 0 2px 6px rgba(0,0,0,0.02); }
+    table.admin-table { width:100%; border-collapse:collapse; margin-top:6px; font-size:0.92rem;}
+    table.admin-table th, table.admin-table td { padding:6px 8px; text-align:left; border-bottom:1px solid #f0e7de; }
+    .action-btn { padding:6px 8px; border-radius:6px; cursor:pointer; border:none; font-weight:700; }
+    .action-approve { background:var(--status-approved); color:#fff; }
+    .action-reject { background:var(--status-rejected); color:#fff; }
+    .action-edit { background:#f0c4a6; color:var(--accent-dark); }
+    .action-delete { background:#e3b4a0; color:var(--accent-dark); }
+
+    /* calendar col */
+    #calendarWrap { background:var(--panel); padding:12px; border-radius:12px; box-shadow:var(--shadow); }
+    #calendar { border-radius:8px; }
+
+    /* modal base reused from previous */
+    .modal { display:none; position:fixed; z-index:80; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.35); justify-content:center; align-items:center;}
+    .modal-content{ background:var(--white); width:92%; max-width:720px; border-radius:12px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,0.18); }
+    .close{ float:right; font-size:20px; cursor:pointer; color:#9c7f67; }
+    @media (max-width:1000px){
+      .layout{ grid-template-columns: 1fr; }
+      #adminCol{ max-height:none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Sala - FORTUNY</h1>
+  </header>
+
+  <div class="wrap">
+    <div class="top-row">
+      <div id="infoEmpleado">
+        <div style="margin-right:8px;font-size:0.95rem;color:var(--accent-dark);font-weight:700">Empleado:</div>
+        <select id="empleadoSelect" aria-label="Selecciona empleado">
+          <option value="">Selecciona tu nombre</option>
+          <option>Justo Gomez</option>
+          <option>Yustin Zambrano</option>
+          <option>Julio Arias</option>
+          <option>Francisco Soriano</option>
+          <option>Valentin Naranjo</option>
+          <option>Michelle Autelitano</option>
+          <option>Santiago Germain</option>
+          <option>Sanguita Karki</option>
+          <option>Marianita Kurys</option>
+          <option>Camila Calzadilla</option>
+          <option>Gimena Vicente</option>
+          <option>Radhika Barea</option>
+          <option>Andrei Belei</option>
+          <option>Marcos Fernandez</option>
+          <option>Laura Delgado</option>
+          <option>Enric Conill</option>
+          <option>Gabriel Flores</option>
+          <option>Alejandro Reñe</option>
+          <option>Juliette Christiane</option>
+          <option>Kiara Soledad</option>
+          <option>Juana Ambrosoni</option>
+          <option>Armin Rajabicheraghabadi</option>
+          <option>Diego Lopez</option>
+          <option>Julieta Salomone</option>
+        </select>
+      </div>
+
+      <div style="display:flex;gap:12px;align-items:center">
+        <div id="contador">Días disponibles: <span id="diasRestantes">30</span></div>
+        <button id="adminBtn" title="Entrar como administrador">Entrar administrador</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div id="adminCol">
+        <div class="admin-controls">
+          <button id="verTodosBtn" class="btn-mini">Ver todas</button>
+          <button id="reiniciarDiasBtn" class="btn-mini">Reiniciar días</button>
+          <button id="exportXlsxBtn" class="btn-mini">Exportar XLSX</button>
+          <button id="exportJsonBtn" class="btn-mini">Guardar JSON</button>
+          <label class="btn-mini ghost" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+            <input id="importJsonInput" type="file" accept=".json" style="display:none">
+            Cargar JSON
+          </label>
+        </div>
+        <div id="employeesList">
+          <!-- cards via JS -->
+        </div>
+      </div>
+
+      <div id="calendarWrap">
+        <div id="calendar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal (reused for create/edit) -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-content" role="document">
+      <span class="close" id="closeModal">&times;</span>
+      <h2 id="modalTitle">Solicitud</h2>
+      <form id="solicitudForm">
+        <label>Tipo</label>
+        <select id="tipo" required><option value="">Selecciona tipo</option><option>Vacaciones</option><option>Día libre</option><option>Asuntos propios</option></select>
+
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <div style="flex:1">
+            <label>Desde</label>
+            <input id="desde" type="datetime-local" required>
+          </div>
+          <div style="flex:1">
+            <label>Hasta</label>
+            <input id="hasta" type="datetime-local" required>
+          </div>
+        </div>
+
+        <div style="margin-top:8px">
+          <label style="display:flex;gap:8px;align-items:center">
+            <input id="notifyCheckbox" type="checkbox"> Deseo recibir notificación
+          </label>
+          <div id="emailWrap" style="display:none;margin-top:8px">
+            <label>Email (opcional)</label>
+            <input id="email" type="email" placeholder="tu@ejemplo.com">
+          </div>
+        </div>
+
+        <label style="margin-top:8px">Comentarios</label>
+        <textarea id="comentarios" placeholder="Motivo (opcional)"></textarea>
+
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button id="submitBtn" class="btn" type="submit">Enviar</button>
+          <button id="saveChangesBtn" class="btn" type="button" style="display:none">Guardar</button>
+          <button id="deleteBtn" class="btn secondary" type="button" style="display:none">Eliminar</button>
+          <button id="cancelBtn" class="btn secondary" type="button">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin password modal -->
+  <div id="adminModal" class="modal" aria-hidden="true">
+    <div class="modal-content" style="max-width:420px">
+      <span class="close" id="closeAdmin">&times;</span>
+      <h2>Acceso administrador</h2>
+      <p class="small-muted">Introduce la clave para ver todas las solicitudes.</p>
+      <input id="adminPassword" type="password" placeholder="Clave administradora">
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="enterAdmin" class="btn">Entrar</button>
+        <button id="closeAdminBtn" class="btn secondary">Cerrar</button>
+      </div>
+      <div id="adminMsg" style="margin-top:10px;color:#8a3d3d;font-weight:700;"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="./script.js"></script>
+</body>
+</html>
