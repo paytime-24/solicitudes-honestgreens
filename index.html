@@ -3,28 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sala - FORTUNY</title>
+  <title>🌿SALA FORTUNY🌿</title>
 
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet" />
 
   <style>
     :root{
-      --bg:#f6f1ea;
-      --panel:#fffefc;
-      --accent:#a86f3f;
-      --accent-dark:#7e4e2d;
-      --muted:#d6b89a;
-      --text:#362b24;
-      --white:#ffffff;
-
-      --vacaciones-dark:#a15a36;
-      --libre-light:#f6dcc4;
-      --asuntos-mid:#d7a67f;
-
-      --status-approved:#7fb26f;
-      --status-rejected:#c86b6b;
-      --shadow: 0 6px 18px rgba(0,0,0,0.06);
+      --bg:#f8f5f0;       /* beige muy claro */
+      --panel:#f0e9df;    /* beige medio */
+      --card:#ffffff;
+      --accent:#2f4f4f;   /* verde oscuro */
+      --accent-2:#3d5c54;
+      --muted:#d9cfc2;
+      --text:#3a2f2f;
+      --success:#9fb69f;
+      --danger:#b85c56;
     }
     *{box-sizing:border-box}
     body{
@@ -35,126 +29,74 @@
       -webkit-font-smoothing:antialiased;
     }
     header{
-      background:#fffdf9;
-      color:var(--text);
-      padding:20px 12px;
-      text-align:center;
-      box-shadow:0 6px 18px rgba(0,0,0,0.06);
-      border-bottom:1px solid #f0e7de;
-    }
-    header h1{ margin:0; font-size:1.3rem; letter-spacing:0.4px; font-weight:800;}
-    .wrap{
-      max-width:1200px;
-      margin:22px auto;
-      padding:0 16px 80px;
-    }
-    .top-row{
+      background:linear-gradient(90deg,var(--accent) 0%, #3d5c54 100%);
+      color:white;
+      padding:14px 16px;
       display:flex;
+      align-items:center;
       justify-content:space-between;
-      align-items:center;
       gap:12px;
-      margin-bottom:18px;
     }
-    #infoEmpleado{
-      background:var(--panel);
-      padding:10px 12px;
-      border-radius:10px;
-      box-shadow: var(--shadow);
-      display:flex;
-      gap:12px;
-      align-items:center;
-    }
-    #infoEmpleado select{
-      padding:8px 10px;
-      border-radius:8px;
-      border:1px solid #e6d9c8;
-      background: var(--white);
-      color:var(--text);
-      font-weight:600;
-    }
-    #contador{
-      font-size:0.95rem;
-      color:var(--accent-dark);
-      font-weight:700;
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    #adminBtn{
-      background:transparent;
-      border:1px dashed rgba(61,47,42,0.12);
-      padding:6px 10px;
-      border-radius:8px;
-      cursor:pointer;
-      color:var(--accent-dark);
-      font-weight:600;
-    }
+    header h1{ margin:0; font-size:1.1rem; font-weight:700; letter-spacing:0.4px; }
+    header .right{ display:flex; gap:8px; align-items:center; }
+    .wrap{ max-width:1100px; margin:20px auto; padding:0 16px 80px; }
+    .top-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+    #infoEmpleado{ background:var(--card); padding:10px 12px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.04); display:flex; gap:12px; align-items:center; }
+    #infoEmpleado select, input[type="email"]{ padding:8px 10px; border-radius:8px; border:1px solid var(--muted); background: var(--card); color:var(--text); font-weight:600; }
+    #contador{ font-size:0.95rem; color:var(--accent); font-weight:700; display:flex; align-items:center; gap:10px; }
+    button.small { padding:8px 10px; border-radius:8px; border:none; cursor:pointer; font-weight:700; background:var(--accent); color:#fff; }
+    button.ghost { background:transparent; border:1px dashed rgba(0,0,0,0.08); color:var(--card); padding:6px 10px; border-radius:8px; }
+    #calendar{ background:var(--card); border-radius:12px; padding:18px; box-shadow:0 8px 24px rgba(0,0,0,0.06); }
 
-    .layout {
-      display:grid;
-      grid-template-columns: 360px 1fr;
-      gap:18px;
-      align-items:start;
+    /* modal */
+    .modal { display:none; position:fixed; z-index:1200; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.35); justify-content:center; align-items:center; }
+    .modal-content{ background:var(--card); width:94%; max-width:640px; border-radius:12px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,0.18); }
+    .modal-content h2{ margin:0 0 8px 0; color:var(--accent); }
+    label{ display:block; margin-top:10px; font-weight:700; color:var(--accent); font-size:0.95rem;}
+    input[type="date"], input[type="time"], input[type="text"], select, textarea, input[type="email"] {
+      width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--muted); margin-top:6px; font-size:0.95rem; background:#fff;
     }
+    textarea{ resize:vertical; min-height:80px; }
+    .row{ display:flex; gap:8px; align-items:center; margin-top:6px; }
+    .btn { background:var(--accent); color:white; border:none; padding:10px 12px; border-radius:8px; cursor:pointer; font-weight:700; margin-top:14px; }
+    .btn.secondary{ background:var(--accent-2); color:#fff; margin-left:8px; }
+    .btn.ghost { background:transparent; border:1px solid var(--muted); color:var(--text); }
+    .close{ float:right; font-size:20px; cursor:pointer; color:#7a6b63; }
+    .small-muted{font-size:0.9rem;color:#6b6b6b}
 
-    /* left column admin panel */
-    #adminCol {
-      background:var(--panel);
-      padding:12px;
-      border-radius:12px;
-      box-shadow: var(--shadow);
-      max-height:calc(100vh - 140px);
-      overflow:auto;
-    }
-    .admin-controls { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
-    .card-emp {
-      background:#fff;
-      border-radius:10px;
-      padding:10px;
-      margin-bottom:10px;
-      box-shadow:0 6px 14px rgba(0,0,0,0.04);
-      border-left:6px solid #f0e7de;
-    }
-    .emp-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
-    .emp-name { font-weight:800; color:var(--accent-dark); }
-    .emp-days { font-weight:700; color:var(--accent-dark); }
-    .btn-mini { padding:6px 8px; border-radius:8px; font-weight:700; cursor:pointer; border:none; background:var(--muted); color:var(--accent-dark); }
-    .btn-mini.ghost { background:transparent; border:1px solid #efe1d3; }
+    /* event style */
+    .fc-event { border: none; padding:6px 8px; border-radius:8px; font-weight:700; font-size:0.85rem; }
+    .fc .fc-daygrid-event .fc-event-title { color:#072a20 }
+    .badge { background:var(--accent); color:#fff; padding:6px 8px; border-radius:8px; font-weight:700; }
 
-    .accordion-content { margin-top:8px; display:none; background:#fffaf6; padding:8px; border-radius:8px; box-shadow:inset 0 2px 6px rgba(0,0,0,0.02); }
-    table.admin-table { width:100%; border-collapse:collapse; margin-top:6px; font-size:0.92rem;}
-    table.admin-table th, table.admin-table td { padding:6px 8px; text-align:left; border-bottom:1px solid #f0e7de; }
-    .action-btn { padding:6px 8px; border-radius:6px; cursor:pointer; border:none; font-weight:700; }
-    .action-approve { background:var(--status-approved); color:#fff; }
-    .action-reject { background:var(--status-rejected); color:#fff; }
-    .action-edit { background:#f0c4a6; color:var(--accent-dark); }
-    .action-delete { background:#e3b4a0; color:var(--accent-dark); }
+    @media (max-width:760px){ .top-row{flex-direction:column;align-items:stretch;} .row{flex-direction:column} }
 
-    /* calendar col */
-    #calendarWrap { background:var(--panel); padding:12px; border-radius:12px; box-shadow:var(--shadow); }
-    #calendar { border-radius:8px; }
-
-    /* modal base reused from previous */
-    .modal { display:none; position:fixed; z-index:80; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.35); justify-content:center; align-items:center;}
-    .modal-content{ background:var(--white); width:92%; max-width:720px; border-radius:12px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,0.18); }
-    .close{ float:right; font-size:20px; cursor:pointer; color:#9c7f67; }
-    @media (max-width:1000px){
-      .layout{ grid-template-columns: 1fr; }
-      #adminCol{ max-height:none; }
-    }
+    /* admin panel */
+    .panel-admin { margin-top:12px; padding:12px; background:var(--panel); border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); }
+    .admin-table { width:100%; border-collapse:collapse; margin-top:10px; }
+    .admin-table th, .admin-table td { padding:8px; border-bottom:1px solid #eee; text-align:left; font-size:0.95rem; }
+    .small-action { background:transparent; border:1px solid #ddd; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:0.85rem; margin-left:6px; }
+    .status-pending { background:#f1e7d9; color:#6b4f38; padding:6px 8px; border-radius:6px; font-weight:700; }
+    .status-approved { background:var(--success); color:#072a20; padding:6px 8px; border-radius:6px; font-weight:700; }
+    .status-rejected { background:var(--danger); color:#fff; padding:6px 8px; border-radius:6px; font-weight:700; }
   </style>
 </head>
 <body>
   <header>
-    <h1>Sala - FORTUNY</h1>
+    <h1>SALA FORTUNY</h1>
+    <div class="right">
+      <div class="badge">Organizador de días</div>
+      <button id="adminTabBtn" class="small" title="ADMIN">ADMIN</button>
+    </div>
   </header>
 
   <div class="wrap">
     <div class="top-row">
-      <div id="infoEmpleado">
-        <div style="margin-right:8px;font-size:0.95rem;color:var(--accent-dark);font-weight:700">Empleado:</div>
+      <div id="infoEmpleado" aria-hidden="false">
+        <div style="margin-right:8px;font-size:0.95rem;color:var(--accent);font-weight:700">Empleado:</div>
         <select id="empleadoSelect" aria-label="Selecciona empleado">
           <option value="">Selecciona tu nombre</option>
+          <!-- Lista del personal (sala) -->
           <option>Justo Gomez</option>
           <option>Yustin Zambrano</option>
           <option>Julio Arias</option>
@@ -184,93 +126,717 @@
 
       <div style="display:flex;gap:12px;align-items:center">
         <div id="contador">Días disponibles: <span id="diasRestantes">30</span></div>
-        <button id="adminBtn" title="Entrar como administrador">Entrar administrador</button>
+        <button id="openCreate" class="btn">Nueva solicitud</button>
       </div>
     </div>
 
-    <div class="layout">
-      <div id="adminCol">
-        <div class="admin-controls">
-          <button id="verTodosBtn" class="btn-mini">Ver todas</button>
-          <button id="reiniciarDiasBtn" class="btn-mini">Reiniciar días</button>
-          <button id="exportXlsxBtn" class="btn-mini">Exportar XLSX</button>
-          <button id="exportJsonBtn" class="btn-mini">Guardar JSON</button>
-          <label class="btn-mini ghost" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
-            <input id="importJsonInput" type="file" accept=".json" style="display:none">
-            Cargar JSON
-          </label>
-        </div>
-        <div id="employeesList">
-          <!-- cards via JS -->
-        </div>
-      </div>
-
-      <div id="calendarWrap">
-        <div id="calendar"></div>
-      </div>
-    </div>
+    <div id="calendar"></div>
   </div>
 
-  <!-- modal (reused for create/edit) -->
-  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+  <!-- Modal Crear -->
+  <div id="modalCreate" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal-content" role="document">
-      <span class="close" id="closeModal">&times;</span>
-      <h2 id="modalTitle">Solicitud</h2>
-      <form id="solicitudForm">
-        <label>Tipo</label>
-        <select id="tipo" required><option value="">Selecciona tipo</option><option>Vacaciones</option><option>Día libre</option><option>Asuntos propios</option></select>
+      <span class="close" id="closeCreate">&times;</span>
+      <h2>Nueva solicitud</h2>
 
-        <div style="display:flex;gap:8px;margin-top:8px">
+      <form id="formCreate" aria-label="Formulario de solicitud">
+        <label for="c_employee">Empleado</label>
+        <select id="c_employee" required>
+          <option value="">Selecciona</option>
+        </select>
+
+        <label for="c_email">Correo del solicitante (opcional)</label>
+        <input id="c_email" type="email" placeholder="ej. nombre@correo.com">
+
+        <label for="c_type">Tipo</label>
+        <select id="c_type" required>
+          <option value="">Selecciona tipo</option>
+          <option value="Vacaciones">Vacaciones</option>
+          <option value="Día libre">Día libre</option>
+          <option value="Asuntos propios">Asuntos propios</option>
+        </select>
+
+        <div class="row">
           <div style="flex:1">
-            <label>Desde</label>
-            <input id="desde" type="datetime-local" required>
+            <label for="c_from_date">Desde (fecha)</label>
+            <input id="c_from_date" type="date" required>
           </div>
           <div style="flex:1">
-            <label>Hasta</label>
-            <input id="hasta" type="datetime-local" required>
+            <label for="c_to_date">Hasta (fecha)</label>
+            <input id="c_to_date" type="date" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <label for="c_from_time">Hora desde</label>
+            <input id="c_from_time" type="time" value="09:00">
+          </div>
+          <div style="flex:1">
+            <label for="c_to_time">Hora hasta</label>
+            <input id="c_to_time" type="time" value="18:00">
           </div>
         </div>
 
         <div style="margin-top:8px">
-          <label style="display:flex;gap:8px;align-items:center">
-            <input id="notifyCheckbox" type="checkbox"> Deseo recibir notificación
-          </label>
-          <div id="emailWrap" style="display:none;margin-top:8px">
-            <label>Email (opcional)</label>
-            <input id="email" type="email" placeholder="tu@ejemplo.com">
+          <label style="font-weight:700;"><input id="c_all_day" type="checkbox"> Todo el día</label>
+        </div>
+
+        <label for="c_comments">Comentarios (opcional)</label>
+        <textarea id="c_comments" placeholder="Motivo, notas..."></textarea>
+
+        <div style="display:flex;gap:8px;">
+          <button class="btn" type="submit">Enviar solicitud</button>
+          <button class="btn secondary" type="button" id="closeCreateBtn">Cancelar</button>
+        </div>
+        <div style="margin-top:8px" class="small-muted">Tu solicitud se guardará localmente y notificará a RRHH.</div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Admin login -->
+  <div id="modalAdminLogin" class="modal" aria-hidden="true">
+    <div class="modal-content" style="max-width:420px">
+      <span class="close" id="closeAdminLogin">&times;</span>
+      <h2>Acceso ADMIN</h2>
+      <p class="small-muted">Introduce la contraseña para acceder al panel de administrador.</p>
+      <input id="adminPasswordInput" type="password" placeholder="Contraseña">
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="enterAdminBtn" class="btn">Entrar</button>
+        <button id="cancelAdminBtn" class="btn secondary">Cancelar</button>
+      </div>
+      <div id="adminLoginMsg" style="margin-top:10px;color:#8a3d3d;font-weight:700;"></div>
+    </div>
+  </div>
+
+  <!-- Modal Edit (admin) -->
+  <div id="modalEdit" class="modal" aria-hidden="true">
+    <div class="modal-content" style="max-width:640px">
+      <span class="close" id="closeEdit">&times;</span>
+      <h2>Editar solicitud</h2>
+      <form id="formEdit">
+        <label>Empleado</label>
+        <select id="e_employee" required></select>
+
+        <label>Correo del solicitante (opcional)</label>
+        <input id="e_email" type="email">
+
+        <label>Tipo</label>
+        <select id="e_type" required>
+          <option>Vacaciones</option>
+          <option>Día libre</option>
+          <option>Asuntos propios</option>
+        </select>
+
+        <div class="row">
+          <div style="flex:1">
+            <label>Desde (fecha)</label>
+            <input id="e_from_date" type="date" required>
+          </div>
+          <div style="flex:1">
+            <label>Hasta (fecha)</label>
+            <input id="e_to_date" type="date" required>
           </div>
         </div>
 
-        <label style="margin-top:8px">Comentarios</label>
-        <textarea id="comentarios" placeholder="Motivo (opcional)"></textarea>
+        <div class="row">
+          <div style="flex:1">
+            <label>Hora desde</label>
+            <input id="e_from_time" type="time" value="09:00">
+          </div>
+          <div style="flex:1">
+            <label>Hora hasta</label>
+            <input id="e_to_time" type="time" value="18:00">
+          </div>
+        </div>
 
-        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-          <button id="submitBtn" class="btn" type="submit">Enviar</button>
-          <button id="saveChangesBtn" class="btn" type="button" style="display:none">Guardar</button>
-          <button id="deleteBtn" class="btn secondary" type="button" style="display:none">Eliminar</button>
-          <button id="cancelBtn" class="btn secondary" type="button">Cancelar</button>
+        <div style="margin-top:8px">
+          <label style="font-weight:700;"><input id="e_all_day" type="checkbox"> Todo el día</label>
+        </div>
+
+        <label>Comentarios</label>
+        <textarea id="e_comments"></textarea>
+
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn" type="submit">Guardar cambios</button>
+          <button class="btn secondary" type="button" id="cancelEditBtn">Cancelar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Admin password modal -->
-  <div id="adminModal" class="modal" aria-hidden="true">
-    <div class="modal-content" style="max-width:420px">
-      <span class="close" id="closeAdmin">&times;</span>
-      <h2>Acceso administrador</h2>
-      <p class="small-muted">Introduce la clave para ver todas las solicitudes.</p>
-      <input id="adminPassword" type="password" placeholder="Clave administradora">
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button id="enterAdmin" class="btn">Entrar</button>
-        <button id="closeAdminBtn" class="btn secondary">Cerrar</button>
-      </div>
-      <div id="adminMsg" style="margin-top:10px;color:#8a3d3d;font-weight:700;"></div>
-    </div>
-  </div>
-
+  <!-- FullCalendar + EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="./script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+  <script>
+  /******************************************
+   CONFIG EmailJS
+  ******************************************/
+  // Public key + IDs proporcionados
+  emailjs.init("Q6R8TiTO6mPO8Bzxt"); // public key
+  const SERVICE_ID = "service_6wnk6kc";
+  const TEMPLATE_ID = "template_lwbjymg";
+
+  /******************************************
+   CONSTANTES Y ESTADO
+  ******************************************/
+  const ADMIN_EMAIL = "am.fortuny@honestgreens.com";
+  const ADMIN_PASSWORD = "sala2025";
+  const DIAS_VACACIONES_TOTALES = 30;
+  const CALENDAR_START = '2025-10-01';
+  const CALENDAR_END = '2026-12-31';
+
+  let isAdmin = false;
+  let currentEditId = null;
+
+  // elementos
+  const empleadoSelect = document.getElementById('empleadoSelect');
+  const diasRestantesEl = document.getElementById('diasRestantes');
+  const openCreateBtn = document.getElementById('openCreate');
+
+  // form create fields
+  const modalCreate = document.getElementById('modalCreate');
+  const closeCreate = document.getElementById('closeCreate');
+  const closeCreateBtn = document.getElementById('closeCreateBtn');
+  const c_employee = document.getElementById('c_employee');
+  const c_email = document.getElementById('c_email');
+  const c_type = document.getElementById('c_type');
+  const c_from_date = document.getElementById('c_from_date');
+  const c_to_date = document.getElementById('c_to_date');
+  const c_from_time = document.getElementById('c_from_time');
+  const c_to_time = document.getElementById('c_to_time');
+  const c_all_day = document.getElementById('c_all_day');
+  const c_comments = document.getElementById('c_comments');
+  const formCreate = document.getElementById('formCreate');
+
+  // admin login modal
+  const modalAdminLogin = document.getElementById('modalAdminLogin');
+  const adminTabBtn = document.getElementById('adminTabBtn');
+  const adminPasswordInput = document.getElementById('adminPasswordInput');
+  const enterAdminBtn = document.getElementById('enterAdminBtn');
+  const adminLoginMsg = document.getElementById('adminLoginMsg');
+
+  // edit modal
+  const modalEdit = document.getElementById('modalEdit');
+  const closeEdit = document.getElementById('closeEdit');
+  const formEdit = document.getElementById('formEdit');
+  const e_employee = document.getElementById('e_employee');
+  const e_email = document.getElementById('e_email');
+  const e_type = document.getElementById('e_type');
+  const e_from_date = document.getElementById('e_from_date');
+  const e_to_date = document.getElementById('e_to_date');
+  const e_from_time = document.getElementById('e_from_time');
+  const e_to_time = document.getElementById('e_to_time');
+  const e_all_day = document.getElementById('e_all_day');
+  const e_comments = document.getElementById('e_comments');
+
+  /******************************************
+   STORAGE HELPERS (namespaced to sala)
+  ******************************************/
+  function obtenerEventos() {
+    const raw = localStorage.getItem('sala_events_v1');
+    try { return raw ? JSON.parse(raw) : []; } catch(e){ return []; }
+  }
+  function guardarEventos(evts) { localStorage.setItem('sala_events_v1', JSON.stringify(evts)); }
+
+  function obtenerDiasPara(empleado) {
+    if (!empleado) return DIAS_VACACIONES_TOTALES;
+    const key = 'sala_dias_v1_' + empleado;
+    const raw = localStorage.getItem(key);
+    if (raw === null) { localStorage.setItem(key, String(DIAS_VACACIONES_TOTALES)); return DIAS_VACACIONES_TOTALES; }
+    return Number(raw);
+  }
+  function guardarDiasPara(empleado, dias) { if (!empleado) return; localStorage.setItem('sala_dias_v1_' + empleado, String(dias)); }
+
+  /******************************************
+   Inicializar selects y contador
+  ******************************************/
+  // poblar c_employee & e_employee with empleadoSelect options
+  function poblarEmpleadosEnForm() {
+    const options = Array.from(empleadoSelect.options).map(o => o.value).filter(Boolean);
+    c_employee.innerHTML = '<option value="">Selecciona</option>';
+    e_employee.innerHTML = '';
+    options.forEach(name => {
+      const o = document.createElement('option'); o.value = name; o.textContent = name;
+      c_employee.appendChild(o);
+      const o2 = document.createElement('option'); o2.value = name; o2.textContent = name;
+      e_employee.appendChild(o2);
+    });
+  }
+  poblarEmpleadosEnForm();
+
+  // persist selected empleado
+  const storedEmp = localStorage.getItem('sala_selected_emp');
+  if (storedEmp) empleadoSelect.value = storedEmp;
+  updateCounterDisplay();
+
+  empleadoSelect.addEventListener('change', () => {
+    localStorage.setItem('sala_selected_emp', empleadoSelect.value);
+    updateCounterDisplay();
+    renderEvents();
+  });
+
+  function updateCounterDisplay(emp) {
+    const current = emp || empleadoSelect.value || storedEmp || '';
+    diasRestantesEl.textContent = obtenerDiasPara(current || '');
+  }
+
+  /******************************************
+   Inicializar FullCalendar
+  ******************************************/
+  const calendarEl = document.getElementById('calendar');
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    initialDate: CALENDAR_START,
+    firstDay: 1, // lunes
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: ''
+    },
+    validRange: { start: CALENDAR_START, end: CALENDAR_END },
+    height: 'auto',
+    dateClick: function(info) {
+      // si el usuario quiere crear rápidamente con fecha clicada
+      openCreateWithDate(info.dateStr);
+    },
+    eventClick: function(info) {
+      // si admin, abrir editor con los datos del evento
+      const ev = info.event.extendedProps.raw;
+      if (isAdmin) {
+        abrirEditorPorId(ev.id);
+      } else {
+        // no admin: opcional: mostrar detalles (solo lectura)
+        mostrarDetalleLectura(ev);
+      }
+    }
+  });
+  calendar.render();
+
+  /******************************************
+   UTILIDADES: construir ISO datetime y dif dias
+  ******************************************/
+  function buildISO(dateStr, timeStr) {
+    // dateStr like YYYY-MM-DD, timeStr like HH:MM
+    if (!timeStr) timeStr = '09:00';
+    return dateStr + 'T' + timeStr + ':00';
+  }
+  function nextDateISO(ymd) { const d = new Date(ymd); d.setDate(d.getDate()+1); return d.toISOString().split('T')[0]; }
+  function diasEntreInclusiveDates(fromDateStr, toDateStr) {
+    const d1 = new Date(fromDateStr);
+    const d2 = new Date(toDateStr);
+    const msDay = 1000*60*60*24;
+    return Math.floor((Date.UTC(d2.getFullYear(),d2.getMonth(),d2.getDate()) - Date.UTC(d1.getFullYear(),d1.getMonth(),d1.getDate()))/msDay) + 1;
+  }
+
+  /******************************************
+   RENDER EVENTS (según permisos)
+  ******************************************/
+  function renderEvents() {
+    calendar.getEvents().forEach(ev => ev.remove());
+    const evts = obtenerEventos();
+    const current = empleadoSelect.value || localStorage.getItem('sala_selected_emp') || '';
+    evts.forEach(e => {
+      if (!isAdmin && current && e.employee !== current) return;
+      const start = e.allDay ? e.fromDate.split('T')[0] : e.fromDate;
+      const fcEvent = {
+        id: e.id,
+        title: isAdmin ? `${e.employee} — ${e.type} (${obtenerDiasPara(e.employee)}d)` : `${e.employee}`,
+        start: start,
+        end: e.allDay ? nextDateISO(e.toDate.split('T')[0]) : e.toDate,
+        allDay: e.allDay,
+        backgroundColor: (e.type === 'Vacaciones' ? '#cfe6d0' : (e.type === 'Día libre' ? '#efe3d5' : '#ecdcd6')),
+        borderColor: '#bda58b',
+        textColor: '#3a2f2f',
+        extendedProps: { raw: e }
+      };
+      calendar.addEvent(fcEvent);
+    });
+  }
+  renderEvents();
+
+  /******************************************
+   CREAR SOLICITUD (empleados)
+  ******************************************/
+  function openCreateWithDate(dateISO) {
+    poblarEmpleadosEnForm();
+    c_employee.value = empleadoSelect.value || '';
+    if (dateISO) {
+      c_from_date.value = dateISO;
+      c_to_date.value = dateISO;
+    } else {
+      c_from_date.value = '';
+      c_to_date.value = '';
+    }
+    c_from_time.value = '09:00';
+    c_to_time.value = '18:00';
+    c_all_day.checked = false;
+    c_comments.value = '';
+    c_email.value = '';
+    modalCreate.style.display = 'flex';
+  }
+
+  openCreateBtn.addEventListener('click', ()=> openCreateWithDate());
+
+  closeCreate.addEventListener('click', ()=> modalCreate.style.display='none');
+  closeCreateBtn.addEventListener('click', ()=> modalCreate.style.display='none');
+
+  formCreate.addEventListener('submit', function(e){
+    e.preventDefault();
+    const employee = c_employee.value;
+    const email = c_email.value.trim();
+    const type = c_type.value;
+    const fromDate = c_from_date.value;
+    const toDate = c_to_date.value;
+    const fromTime = c_all_day.checked ? '00:00' : (c_from_time.value || '09:00');
+    const toTime = c_all_day.checked ? '23:59' : (c_to_time.value || '18:00');
+    const allDay = !!c_all_day.checked;
+    const comments = c_comments.value.trim();
+
+    if (!employee) return alert('Selecciona tu nombre.');
+    if (!type) return alert('Selecciona tipo.');
+    if (!fromDate || !toDate) return alert('Selecciona fechas.');
+
+    const diasSolicitados = diasEntreInclusiveDates(fromDate, toDate);
+    const disponibles = obtenerDiasPara(employee);
+    if (type === 'Vacaciones' && diasSolicitados > disponibles) {
+      if (!confirm(`Atención: ${employee} solo tiene ${disponibles} días. ¿Deseas enviar la solicitud de todos modos?`)) return;
+    }
+
+    // construir evento
+    const id = 'sala_' + Date.now();
+    const newEvent = {
+      id,
+      employee,
+      email: email || '',
+      type,
+      fromDate: buildISO(fromDate, fromTime),
+      toDate: buildISO(toDate, toTime),
+      allDay,
+      comments,
+      days: diasSolicitados,
+      status: 'Pendiente',
+      createdAt: new Date().toISOString()
+    };
+
+    const evts = obtenerEventos();
+    evts.push(newEvent);
+    guardarEventos(evts);
+
+    // descontar solo si Vacaciones
+    if (type === 'Vacaciones') {
+      const actuales = obtenerDiasPara(employee);
+      guardarDiasPara(employee, Math.max(0, actuales - diasSolicitados));
+    }
+
+    updateCounterDisplay(employee);
+    renderEvents();
+    modalCreate.style.display = 'none';
+    formCreate.reset();
+
+    // enviar notificación al admin via EmailJS
+    const params = {
+      employee,
+      from_date: newEvent.fromDate,
+      to_date: newEvent.toDate,
+      from_time: fromTime,
+      to_time: toTime,
+      type,
+      comments,
+      days_requested: diasSolicitados,
+      days_remaining_before: obtenerDiasPara(employee) + (type === 'Vacaciones' ? diasSolicitados : 0),
+      subject: `[Solicitud] ${employee} — ${type} ${fromDate} → ${toDate}`,
+      to_email: ADMIN_EMAIL,
+      status: newEvent.status
+    };
+    // send but ignore failures (still saved locally)
+    emailjs.send(SERVICE_ID, TEMPLATE_ID, params).catch(err => console.warn('EmailJS->admin send failed', err));
+    alert('Solicitud creada y notificada a RRHH (guardada localmente).');
+  });
+
+  /******************************************
+   ADMIN: login / panel
+  ******************************************/
+  const adminPanelRootId = 'adminPanelRoot';
+  adminTabBtn.addEventListener('click', ()=> {
+    modalAdminLogin.style.display = 'flex';
+    adminPasswordInput.value = '';
+    adminLoginMsg.textContent = '';
+  });
+  document.getElementById('closeAdminLogin').addEventListener('click', ()=> modalAdminLogin.style.display='none');
+  document.getElementById('cancelAdminBtn').addEventListener('click', ()=> modalAdminLogin.style.display='none');
+
+  enterAdminBtn.addEventListener('click', ()=> {
+    const val = (adminPasswordInput.value || '').trim();
+    if (val === ADMIN_PASSWORD) {
+      isAdmin = true;
+      localStorage.setItem('sala_admin_logged', '1');
+      modalAdminLogin.style.display = 'none';
+      inicializarVistaAdmin();
+      alert('Modo ADMIN activado.');
+    } else {
+      adminLoginMsg.textContent = 'Clave incorrecta';
+    }
+  });
+
+  if (localStorage.getItem('sala_admin_logged') === '1') {
+    isAdmin = true;
+    inicializarVistaAdmin();
+  }
+
+  function inicializarVistaAdmin() {
+    // mostrar panel admin encima del calendario
+    const wrap = document.querySelector('.wrap');
+    if (document.getElementById(adminPanelRootId)) return;
+    const panel = document.createElement('div');
+    panel.id = adminPanelRootId;
+    panel.className = 'panel-admin';
+    panel.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div style="font-weight:800;color:var(--accent)">PANEL ADMIN — Sala FORTUNY</div>
+        <div>
+          <button id="logoutAdmin" class="btn secondary">Salir ADMIN</button>
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;">
+        <button id="btnVerTabla" class="btn secondary">Ver solicitudes (tabla)</button>
+        <button id="btnReiniciar" class="btn">Reiniciar días a 30</button>
+        <button id="btnExportCSV" class="btn secondary">Exportar CSV</button>
+      </div>
+      <div id="adminSummary" style="margin-top:12px"></div>
+      <div id="adminTableWrap" style="margin-top:12px"></div>
+    `;
+    wrap.insertBefore(panel, document.getElementById('calendar'));
+
+    document.getElementById('logoutAdmin').addEventListener('click', ()=> {
+      isAdmin = false;
+      localStorage.removeItem('sala_admin_logged');
+      location.reload();
+    });
+    document.getElementById('btnVerTabla').addEventListener('click', mostrarTablaAdmin);
+    document.getElementById('btnReiniciar').addEventListener('click', ()=> {
+      if (!confirm('Reiniciar días de todos a 30?')) return;
+      Array.from(empleadoSelect.options).map(o=>o.value).filter(v=>v).forEach(emp => guardarDiasPara(emp, DIAS_VACACIONES_TOTALES));
+      alert('Días reiniciados a 30.');
+      updateSummary();
+      renderEvents();
+    });
+    document.getElementById('btnExportCSV').addEventListener('click', exportCSVAdmin);
+
+    updateSummary();
+    mostrarTablaAdmin();
+    renderEvents();
+  }
+
+  function updateSummary() {
+    const wrap = document.getElementById('adminSummary');
+    const empleados = Array.from(empleadoSelect.options).map(o=>o.value).filter(v=>v);
+    let html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">';
+    empleados.forEach(emp => {
+      html += `<div style="background:#fff;padding:10px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,0.04)"><div style="font-weight:800">${emp}</div><div style="margin-top:6px;color:#666">Días restantes: <strong>${obtenerDiasPara(emp)}</strong></div></div>`;
+    });
+    html += '</div>';
+    wrap.innerHTML = html;
+  }
+
+  function mostrarTablaAdmin() {
+    const wrap = document.getElementById('adminTableWrap');
+    const evts = obtenerEventos();
+    if (!evts.length) { wrap.innerHTML = '<div class="small-muted">No hay solicitudes</div>'; return; }
+    let html = '<table class="admin-table"><thead><tr><th>Empleado</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
+    evts.slice().reverse().forEach(ev => {
+      const estado = ev.status || 'Pendiente';
+      const estadoHtml = estado === 'Aprobada' ? `<span class="status-approved">Aprobada</span>` : (estado==='Rechazada'? `<span class="status-rejected">Rechazada</span>` : `<span class="status-pending">Pendiente</span>`);
+      html += `<tr data-id="${ev.id}"><td>${ev.employee}</td><td>${ev.type}</td><td>${ev.fromDate.replace('T',' ')}</td><td>${ev.toDate.replace('T',' ')}</td><td>${ev.days}</td><td>${estadoHtml}</td><td>
+        <button class="small-action admin-edit" data-id="${ev.id}">✏️ Editar</button>
+        <button class="small-action admin-approve" data-id="${ev.id}">✅ Aprobar</button>
+        <button class="small-action admin-reject" data-id="${ev.id}">❌ Rechazar</button>
+        <button class="small-action admin-delete" data-id="${ev.id}">🗑️ Eliminar</button>
+      </td></tr>`;
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+
+    // attach listeners
+    wrap.querySelectorAll('.admin-delete').forEach(b=>b.addEventListener('click', (ev)=> {
+      const id = ev.currentTarget.getAttribute('data-id'); if (!confirm('Eliminar solicitud?')) return; eliminarPorIdAdmin(id);
+    }));
+    wrap.querySelectorAll('.admin-edit').forEach(b=>b.addEventListener('click', (ev)=> {
+      const id = ev.currentTarget.getAttribute('data-id'); abrirEditorPorId(id);
+    }));
+    wrap.querySelectorAll('.admin-approve').forEach(b=>b.addEventListener('click', (ev)=> {
+      const id = ev.currentTarget.getAttribute('data-id'); procesarAprobacion(id, 'Aprobada');
+    }));
+    wrap.querySelectorAll('.admin-reject').forEach(b=>b.addEventListener('click', (ev)=> {
+      const id = ev.currentTarget.getAttribute('data-id'); procesarAprobacion(id, 'Rechazada');
+    }));
+  }
+
+  /******************************************
+   ADMIN acciones: eliminar, aprobar, editar
+  ******************************************/
+  function eliminarPorIdAdmin(id) {
+    const evts = obtenerEventos();
+    const idx = evts.findIndex(x=>x.id===id);
+    if (idx===-1) return alert('No encontrado');
+    const ev = evts[idx];
+    if (ev.type === 'Vacaciones') {
+      // devolver dias
+      const actuales = obtenerDiasPara(ev.employee);
+      guardarDiasPara(ev.employee, actuales + ev.days);
+    }
+    evts.splice(idx,1);
+    guardarEventos(evts);
+    updateSummary();
+    renderEvents();
+    mostrarTablaAdmin();
+    alert('Solicitud eliminada.');
+  }
+
+  function procesarAprobacion(id, nuevoEstado) {
+    const evts = obtenerEventos();
+    const idx = evts.findIndex(x=>x.id===id);
+    if (idx===-1) return alert('No encontrado');
+    const ev = evts[idx];
+    ev.status = nuevoEstado;
+    // si rechazado y era Vacaciones: devolver días
+    if (nuevoEstado === 'Rechazada' && ev.type === 'Vacaciones') {
+      const actuales = obtenerDiasPara(ev.employee);
+      guardarDiasPara(ev.employee, actuales + ev.days);
+    }
+    guardarEventos(evts);
+    updateSummary();
+    renderEvents();
+    mostrarTablaAdmin();
+    // notificar al solicitante si tiene email
+    if (ev.email) {
+      const params = {
+        employee: ev.employee,
+        from_date: ev.fromDate,
+        to_date: ev.toDate,
+        from_time: ev.fromDate.split('T')[1].slice(0,5),
+        to_time: ev.toDate.split('T')[1].slice(0,5),
+        type: ev.type,
+        comments: ev.comments || '',
+        days_requested: ev.days,
+        days_remaining_before: obtenerDiasPara(ev.employee),
+        subject: `[${nuevoEstado}] Solicitud ${ev.employee}`,
+        to_email: ev.email,
+        status: nuevoEstado
+      };
+      emailjs.send(SERVICE_ID, TEMPLATE_ID, params).catch(err=>console.warn('EmailJS notify applicant failed', err));
+    }
+    alert(`Solicitud ${nuevoEstado.toLowerCase()}.`);
+  }
+
+  /******************************************
+   EDITAR: abrir editor y guardar cambios
+  ******************************************/
+  function abrirEditorPorId(id) {
+    const evts = obtenerEventos();
+    const ev = evts.find(x=>x.id===id);
+    if (!ev) return alert('Evento no encontrado');
+    // poblar form edit
+    poblarEmpleadosEnForm();
+    e_employee.value = ev.employee;
+    e_email.value = ev.email || '';
+    e_type.value = ev.type;
+    e_from_date.value = ev.fromDate.split('T')[0];
+    e_to_date.value = ev.toDate.split('T')[0];
+    e_from_time.value = ev.fromDate.split('T')[1].slice(0,5);
+    e_to_time.value = ev.toDate.split('T')[1].slice(0,5);
+    e_all_day.checked = ev.allDay;
+    e_comments.value = ev.comments || '';
+    modalEdit.style.display = 'flex';
+    currentEditId = id;
+  }
+
+  closeEdit.addEventListener('click', ()=> modalEdit.style.display='none');
+  document.getElementById('cancelEditBtn').addEventListener('click', ()=> modalEdit.style.display='none');
+
+  formEdit.addEventListener('submit', function(e){
+    e.preventDefault();
+    if (!currentEditId) return alert('No hay evento en edición');
+    const evts = obtenerEventos();
+    const idx = evts.findIndex(x=>x.id===currentEditId);
+    if (idx===-1) return alert('No encontrado');
+    const antes = evts[idx];
+
+    // leer valores nuevos
+    const nuevoEmpleado = e_employee.value;
+    const nuevoEmail = e_email.value.trim();
+    const nuevoTipo = e_type.value;
+    const nuevoFromDate = e_from_date.value;
+    const nuevoToDate = e_to_date.value;
+    const nuevoFromTime = e_all_day.checked ? '00:00' : (e_from_time.value || '09:00');
+    const nuevoToTime = e_all_day.checked ? '23:59' : (e_to_time.value || '18:00');
+    const nuevoAllDay = !!e_all_day.checked;
+    const nuevosDias = diasEntreInclusiveDates(nuevoFromDate, nuevoToDate);
+
+    // si antes era Vacaciones, devolvemos sus días
+    if (antes.type === 'Vacaciones') {
+      const actuales = obtenerDiasPara(antes.employee);
+      guardarDiasPara(antes.employee, actuales + antes.days);
+    }
+
+    // actualizar registro
+    evts[idx].employee = nuevoEmpleado;
+    evts[idx].email = nuevoEmail;
+    evts[idx].type = nuevoTipo;
+    evts[idx].fromDate = buildISO(nuevoFromDate, nuevoFromTime);
+    evts[idx].toDate = buildISO(nuevoToDate, nuevoToTime);
+    evts[idx].allDay = nuevoAllDay;
+    evts[idx].comments = e_comments.value || '';
+    evts[idx].days = nuevosDias;
+
+    // si ahora es Vacaciones, restamos
+    if (nuevoTipo === 'Vacaciones') {
+      const actuales2 = obtenerDiasPara(nuevoEmpleado);
+      guardarDiasPara(nuevoEmpleado, Math.max(0, actuales2 - nuevosDias));
+    }
+
+    guardarEventos(evts);
+    modalEdit.style.display = 'none';
+    currentEditId = null;
+    updateSummary();
+    renderEvents();
+    mostrarTablaAdmin();
+    alert('Solicitud editada correctamente.');
+  });
+
+  /******************************************
+   Mostrar detalle solo-lectura para empleados
+  ******************************************/
+  function mostrarDetalleLectura(ev) {
+    // pequeño modal de lectura (reusa modalCreate UI in readonly mode)
+    alert(`${ev.employee}\nTipo: ${ev.type}\nDesde: ${ev.fromDate}\nHasta: ${ev.toDate}\nComentarios: ${ev.comments || ''}\nEstado: ${ev.status || 'Pendiente'}`);
+  }
+
+  /******************************************
+   Export CSV Admin
+  ******************************************/
+  function exportCSVAdmin() {
+    const evts = obtenerEventos();
+    if (!evts.length) { alert('No hay datos'); return; }
+    const rows = [['Empleado','Email','Tipo','Desde','Hasta','Días','Estado','Comentarios','Creado']];
+    evts.forEach(e => rows.push([e.employee,e.email,e.type,e.fromDate,e.toDate,e.days,e.status || 'Pendiente', (e.comments||''), e.createdAt]));
+    const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'sala_solicitudes.csv'; a.click(); URL.revokeObjectURL(url);
+  }
+
+  /******************************************
+   Helper: render / summary update
+  ******************************************/
+  function updateSummaryAndCounter() {
+    updateSummary();
+    updateCounterDisplay();
+  }
+
+  // keep admin summary updated periodically when admin is logged
+  setInterval(()=> { if (isAdmin) updateSummary(); }, 3000);
+
+  </script>
 </body>
 </html>
