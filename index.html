@@ -839,4 +839,55 @@
 
   </script>
 </body>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+  // 👉 Pega aquí tu bloque de configuración que te dio Firebase
+  // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCrvhlQhi62ScnH4Jl8SheHuL1LiHhP3Rw",
+  authDomain: "solicitudes-dias.firebaseapp.com",
+  projectId: "solicitudes-dias",
+  storageBucket: "solicitudes-dias.firebasestorage.app",
+  messagingSenderId: "174198681821",
+  appId: "1:174198681821:web:9474886c6459bd918ceb34",
+  measurementId: "G-79Z4KEP7P0"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+  // Inicializar Firebase y Firestore
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // 🔹 Ejemplo: función para guardar una solicitud (la puedes conectar a tu formulario)
+  async function guardarSolicitud(datos) {
+    await addDoc(collection(db, "solicitudes"), datos);
+    alert("Solicitud guardada en la nube ✅");
+  }
+
+  // 🔹 Ejemplo: al enviar tu formulario, llamas a esta función
+  document.querySelector("#miFormulario").addEventListener("submit", e => {
+    e.preventDefault();
+    const datos = {
+      usuario: document.querySelector("#nombre").value,
+      tipo: document.querySelector("#tipo").value,
+      fechaInicio: document.querySelector("#inicio").value,
+      fechaFin: document.querySelector("#fin").value,
+      estado: "pendiente",
+      fechaSolicitud: new Date()
+    };
+    guardarSolicitud(datos);
+  });
+</script>
+</body>
 </html>
